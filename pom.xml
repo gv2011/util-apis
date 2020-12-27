@@ -40,8 +40,8 @@
   </properties>
 
   <scm>
-    <connection>git@github.com:gv2011/util-apis.git</connection>
-    <developerConnection>git@github.com:gv2011/util-apis.git</developerConnection>
+    <connection>scm:git:git@github.com:gv2011/util-apis.git</connection>
+    <developerConnection>scm:git:git@github.com:gv2011/util-apis.git</developerConnection>
     <url>https://github.com/gv2011/util-apis</url>
     <tag>HEAD</tag>
   </scm>
