@@ -4,11 +4,11 @@
   <parent>
     <groupId>com.github.gv2011</groupId>
     <artifactId>parent-gv</artifactId>
-    <version>0.5.6</version>
+    <version>0.6-SNAPSHOT</version>
   </parent>
 
   <artifactId>util-apis</artifactId>
-  <version>0.5.8-SNAPSHOT</version>
+  <version>0.6-SNAPSHOT</version>
 
   <inceptionYear>2016</inceptionYear>
 
