@@ -24,6 +24,7 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.http;
   exports com.github.gv2011.util.icol;
   exports com.github.gv2011.util.json;
+  exports com.github.gv2011.util.legacy;
   exports com.github.gv2011.util.lock;
   exports com.github.gv2011.util.log;
   exports com.github.gv2011.util.m2t;

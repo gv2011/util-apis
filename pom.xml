@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.github.gv2011</groupId>
     <artifactId>parent-gv</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>1.0</version>
   </parent>
 
   <artifactId>util-apis</artifactId>
