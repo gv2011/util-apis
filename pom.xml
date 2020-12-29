@@ -4,11 +4,11 @@
   <parent>
     <groupId>com.github.gv2011</groupId>
     <artifactId>parent-gv</artifactId>
-    <version>0.5.6</version>
+    <version>1.0</version>
   </parent>
 
   <artifactId>util-apis</artifactId>
-  <version>0.5.7</version>
+  <version>0.6</version>
 
   <inceptionYear>2016</inceptionYear>
 
@@ -25,10 +25,10 @@
       <name>The MIT License</name>
       <url>https://opensource.org/licenses/MIT</url>
       <comments>
-        The license applies to this Maven artifact, its modules and other content within the GIT repository
-        specified in the scm section of this file.
-        The copyright years are given by the inceptionYear tag within this file and by the history of the 
-        current and previous (https://github.com/gv2011/util) GIT repositories.
+        The license applies to the content of the source code repository identified within the 'scm'-section
+        of this file and the corresponding content in the previous repository at https://github.com/gv2011/util. 
+        The author(s) and copyright dates are given by these source code repositories, the
+        'developers' section and the inceptionYear tag of this file.
       </comments>
     </license>
   </licenses>
@@ -41,14 +41,13 @@
     <connection>scm:git:git@github.com:gv2011/util-apis.git</connection>
     <developerConnection>scm:git:git@github.com:gv2011/util-apis.git</developerConnection>
     <url>https://github.com/gv2011/util-apis</url>
-    <tag>util-apis-0.5.7</tag>
+    <tag>util-apis-0.6</tag>
   </scm>
   
   <dependencies>
     <dependency>
       <groupId>jakarta.activation</groupId>
       <artifactId>jakarta.activation-api</artifactId>
-      <version>2.0.0</version>
     </dependency>
   </dependencies>
 
