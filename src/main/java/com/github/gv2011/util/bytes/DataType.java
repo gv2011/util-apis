@@ -46,5 +46,7 @@ public interface DataType{
    */
   @Computed
   DataType baseType();
+  
+  DataType withCharset(Charset charset);
 
 }

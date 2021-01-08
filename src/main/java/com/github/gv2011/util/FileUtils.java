@@ -1,31 +1,5 @@
 package com.github.gv2011.util;
 
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2017 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.Verify.verifyEqual;
 import static com.github.gv2011.util.ex.Exceptions.call;
@@ -33,7 +7,9 @@ import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.ex.Exceptions.wrap;
+import static com.github.gv2011.util.icol.ICollections.xStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
@@ -64,6 +40,8 @@ import org.slf4j.LoggerFactory;
 
 import com.github.gv2011.util.bytes.ByteUtils;
 import com.github.gv2011.util.bytes.Bytes;
+import com.github.gv2011.util.bytes.DataType;
+import com.github.gv2011.util.bytes.DataTypeProvider;
 import com.github.gv2011.util.bytes.FileExtension;
 import com.github.gv2011.util.ex.ThrowingFunction;
 import com.github.gv2011.util.ex.ThrowingSupplier;
@@ -385,6 +363,53 @@ public final class FileUtils {
 
   public static boolean isInside(final Path path, final Path directory) {
     return path.toAbsolutePath().normalize().getParent().startsWith(directory.toAbsolutePath().normalize());
+  }
+
+  public static Opt<Path> resolveSafely(Path file, com.github.gv2011.util.icol.Path path) {
+    if(path.isEmpty()){
+      return Opt.empty();
+    }
+    else{
+      if(!Files.isDirectory(file, NOFOLLOW_LINKS)) return Opt.empty();
+      else{
+        if(path.size()==1){
+          return resolveSafelyInternal(file, path.first());
+        }
+        else{
+          assert !path.isEmpty();
+          return 
+            resolveSafelyInternal(file, path.first())
+            .flatMap(f->resolveSafely(f, path.tail()))
+          ;
+        }
+      }
+    }
+  }
+
+  public static Opt<Path> resolveSafely(Path file, String child) {
+    if(!Files.isDirectory(file)) return Opt.empty();
+    else{
+      return resolveSafelyInternal(file, child);
+    }
+  }
+
+  private static Opt<Path> resolveSafelyInternal(Path dir, String child) {
+    //Assumes Files.isDirectory(dir) has been checked.
+    return child.isEmpty()
+      ? Opt.of(dir)
+      : (
+        callWithCloseable(()->Files.list(dir), s->{
+          return xStream(s)
+            .filter(f->f.getFileName().toString().equals(child))
+            .tryFindAny()
+          ;
+        })
+      )
+    ;
+  }
+
+  public static DataType getType(Path p) {
+    return DataTypeProvider.instance().dataTypeForExtension(getExtension(p));  
   }
 
 }

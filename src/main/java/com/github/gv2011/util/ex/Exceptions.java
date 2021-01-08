@@ -4,6 +4,7 @@ import static com.github.gv2011.util.Nothing.nothing;
 import static com.github.gv2011.util.icol.ICollections.asList;
 import static com.github.gv2011.util.icol.ICollections.toIList;
 
+import java.io.IOException;
 /*-
  * #%L
  * The MIT License (MIT)
@@ -30,6 +31,7 @@ import static com.github.gv2011.util.icol.ICollections.toIList;
  * #L%
  */
 import java.io.InterruptedIOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -95,8 +97,12 @@ public final class Exceptions {
   }
 
   private static RuntimeException map(final Throwable e, final String msg){
-    if(e instanceof InterruptedException || e instanceof InterruptedIOException)
-      return new InterruptedRtException(e, msg);
+    if(e instanceof InterruptedException)
+      return new InterruptedRtException((InterruptedException) e, msg);
+    else if(e instanceof InterruptedIOException)
+      return new InterruptedRtException((InterruptedIOException) e, msg);
+    else if(e instanceof IOException)
+      return new UncheckedIOException(msg, (IOException) e);
     else return new WrappedException(e, msg);
   }
 

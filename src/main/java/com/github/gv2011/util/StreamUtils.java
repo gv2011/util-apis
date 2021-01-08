@@ -35,6 +35,7 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -114,6 +115,21 @@ public final class StreamUtils {
 
   public static final InputStream countingStream(final InputStream in, final IntConsumer counter){
     return countingStream(in, counter, i->i);
+  }
+
+  public static final OutputStream countingStream(final OutputStream out, final IntConsumer counter){
+    return new FilterOutputStream(out){
+      @Override
+      public void write(int b) throws IOException {
+        out.write(b);
+        counter.accept(1);
+      }
+      @Override
+      public void write(byte[] b, int off, int len) throws IOException {
+        out.write(b, off, len);
+        counter.accept(len);
+      }
+    };
   }
 
   @FunctionalInterface

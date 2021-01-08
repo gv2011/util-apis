@@ -31,6 +31,7 @@ import static com.github.gv2011.util.CollectionUtils.toSingle;
 import static com.github.gv2011.util.ex.Exceptions.call;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Spliterator;
@@ -109,6 +110,8 @@ public interface XStream<E> extends Stream<E>, AutoCloseableNt{
   @Override
   XStream<E> filter(Predicate<? super E> predicate);
 
+  @Override
+  XStream<E> sorted(Comparator<? super E> comparator);
 
 
   @Override
@@ -128,6 +131,9 @@ public interface XStream<E> extends Stream<E>, AutoCloseableNt{
   <T> XStream<T> filter(final Class<T> clazz);
 
   <R> XStream<R> flatOpt(final Function<? super E, ? extends Opt<? extends R>> mapper);
+
+  @Override
+  default void close() {}
 
   public static<T> XStream<T> of(final T t) {
       return xStream(Stream.of(t));

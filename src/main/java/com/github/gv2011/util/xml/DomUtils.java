@@ -1,30 +1,5 @@
 package com.github.gv2011.util.xml;
 
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2018 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
 import static com.github.gv2011.util.CollectionUtils.toOpt;
 import static com.github.gv2011.util.Verify.notNull;
 import static com.github.gv2011.util.Verify.verifyEqual;
@@ -33,7 +8,9 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.util.AbstractList;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -55,6 +32,12 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
+import com.github.gv2011.util.StreamUtils;
+import com.github.gv2011.util.bytes.ByteUtils;
+import com.github.gv2011.util.bytes.Bytes;
+import com.github.gv2011.util.bytes.BytesBuilder;
+import com.github.gv2011.util.bytes.DataTypes;
+import com.github.gv2011.util.bytes.TypedBytes;
 import com.github.gv2011.util.icol.Opt;
 
 public final class DomUtils {
@@ -76,6 +59,20 @@ public final class DomUtils {
   }
 
   public static String toString(final Document doc){
+    return toBytes(doc).utf8ToString();
+  }
+
+  public static TypedBytes toTypedBytes(final Document doc){
+    return toBytes(doc).typed(DataTypes.XHTML);
+  }
+
+  public static Bytes toBytes(final Document doc){
+    final BytesBuilder b = ByteUtils.newBytesBuilder(4096);
+    write(doc, b);
+    return b.build();
+  }
+  
+  public static long write(Document doc, OutputStream out) {
     final DOMImplementationLS dom =
       (DOMImplementationLS) call(()->DOMImplementationRegistry.newInstance()).getDOMImplementation("LS")
     ;
@@ -83,11 +80,12 @@ public final class DomUtils {
     serializer.setNewLine("\n");
     final LSOutput destination = dom.createLSOutput();
     destination.setEncoding(UTF_8.name());
-    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    destination.setByteStream(bos);
+    final AtomicLong counter = new AtomicLong();
+    destination.setByteStream(StreamUtils.countingStream(out, counter::addAndGet));
     serializer.write(doc, destination);
-    return new String(bos.toByteArray(), UTF_8);
+    return counter.get();
   }
+
 
   public static String toString1(final Document doc){
     final DocumentType doctype = notNull(doc.getDoctype());
@@ -139,4 +137,5 @@ public final class DomUtils {
     public int size() {
       return nodes.getLength();
     }}
+
 }

@@ -127,6 +127,11 @@ public final class ICollections {
     return iCollections().listOf(e1, e2, more);
   }
 
+  @SafeVarargs
+  public static Path pathOf(final String... elements){
+    return iCollections().pathOf(elements);
+  }
+
   @SuppressWarnings("unchecked")
   public static <E> ISet<E> setOf(final E e1, final E e2, final E... more){
     return iCollections().setOf(e1, e2, more);
@@ -153,6 +158,10 @@ public final class ICollections {
 
   public static <E> IList<E> listFrom(final Collection<? extends E> collection){
     return iCollections().listFrom(collection);
+  }
+
+  public static Path pathFrom(final Collection<String> collection){
+    return iCollections().pathFrom(collection);
   }
 
   public static <E> ISet<E> setFrom(final Collection<? extends E> collection){
@@ -195,6 +204,10 @@ public final class ICollections {
 
   public static <E> IList.Builder<E> listBuilder() {
     return iCollections().listBuilder();
+  }
+
+  public static Path.Builder pathBuilder() {
+    return iCollections().pathBuilder();
   }
 
   public static <E extends Comparable<? super E>> IComparableList.Builder<E> comparableListBuilder() {
@@ -256,6 +269,10 @@ public final class ICollections {
   public static <K extends Comparable<? super K>, V>
   Collector<Entry<? extends K, ? extends V>, ?, ISortedMap<K,V>> toISortedMap(){
     return iCollections().sortedMapCollector();
+  }
+
+  public static Collector<String, ?, Path> toPath() {
+    return iCollections().pathCollector();
   }
 
 

@@ -60,6 +60,8 @@ import com.github.gv2011.util.icol.Opt;
 public class ByteUtils {
 
   private ByteUtils(){staticClass();}
+  
+  private static String HEX_CHARS = "0123456789ABCDEF";
 
   private static final Bytes EMPTY = newBytes(new byte[0]);
 
@@ -116,8 +118,8 @@ public class ByteUtils {
     return new ArrayBytes(array);
   }
 
-  public static TypedBytes asUtf8(final String text){
-    return new ArrayBytes(text.getBytes(UTF_8)).typed(DataTypes.TEXT_PLAIN_UTF_8);
+  public static PlainText asUtf8(final String text){
+    return new PlainTextImp(new ArrayBytes(text.getBytes(UTF_8)));
   }
 
   public static Hash256 hash(final String text){
@@ -213,7 +215,10 @@ public class ByteUtils {
   }
 
   public static TypedBytes readTyped(final Path file) {
-    final DataType dataType = DataTypeProvider.instance().dataTypeForExtension(FileUtils.getExtension(file));
+    DataType dataType = DataTypeProvider.instance().dataTypeForExtension(FileUtils.getExtension(file));
+    if(dataType.charset().isEmpty() && dataType.primaryType().equals(DataTypes.TEXT)){
+      dataType = dataType.withCharset(UTF_8);
+    }
     final FileBytes bytes = new FileBytes(file);
     return new DefaultTypedBytes(bytes, dataType);
   }
@@ -240,6 +245,14 @@ public class ByteUtils {
 
   public static Collector<Bytes,?,Bytes> joining(){
     return new JoiningBytesCollector();
+  }
+
+  public static char firstHex(byte b) {
+    return HEX_CHARS.charAt((b>>4) & 0xF);
+  }
+
+  public static char secondHex(byte b) {
+    return HEX_CHARS.charAt(b & 0xF);
   }
 
 }

@@ -295,7 +295,7 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
         toClose = getLast();
       }
       if(logAdapter!=null){
-        logger.info("Closing logging as last action - goodbye.");
+        logger.warn("Closing logging as last action - goodbye.");
         logAdapter.close();
       }
       else logger.info("Closed - goodbye.");

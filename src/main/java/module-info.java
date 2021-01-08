@@ -21,6 +21,7 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.download;
   exports com.github.gv2011.util.ex;
   exports com.github.gv2011.util.filewatch;
+  exports com.github.gv2011.util.html;
   exports com.github.gv2011.util.http;
   exports com.github.gv2011.util.icol;
   exports com.github.gv2011.util.json;
@@ -34,4 +35,5 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.time;
   exports com.github.gv2011.util.tstr;
   exports com.github.gv2011.util.uc;
+  exports com.github.gv2011.util.xml;
 }

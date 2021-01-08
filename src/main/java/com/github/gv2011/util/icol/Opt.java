@@ -1,5 +1,6 @@
 package com.github.gv2011.util.icol;
 
+import static com.github.gv2011.util.Nothing.nothing;
 /*-
  * #%L
  * The MIT License (MIT)
@@ -79,6 +80,11 @@ public interface Opt<E> extends ISet<E>, Constant<E>{
   E orElse(final E other);
 
   E orElseGet(final Supplier<? extends E> supplier);
+
+  default Nothing orElseDo(final Runnable operation){
+    if(isEmpty()) operation.run();
+    return nothing();
+  }
 
   <X extends Throwable> E orElseThrow(final Supplier<? extends X> exceptionSupplier) throws X;
 

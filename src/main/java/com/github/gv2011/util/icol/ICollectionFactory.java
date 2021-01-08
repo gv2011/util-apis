@@ -95,6 +95,10 @@ public interface ICollectionFactory {
   default <E> IList<E> listOf(final E e0, final E e1, final E... more){
     return Stream.concat(Stream.of(e0,e1), Arrays.stream(more)).collect(listCollector());
   }
+  
+  default Path pathOf(final String... elements){
+    return pathFrom(asList(elements));
+  }
 
   @SuppressWarnings("unchecked")
   default <E> ISet<E> setOf(final E e0, final E e1, final E... more){
@@ -194,6 +198,8 @@ public interface ICollectionFactory {
 
   <E> IList.Builder<E> listBuilder();
 
+  Path.Builder pathBuilder();
+  
   <E extends Comparable<? super E>> IComparableList.Builder<E> comparableListBuilder();
 
   <E> ISet.Builder<E> setBuilder();
@@ -235,14 +241,19 @@ public interface ICollectionFactory {
     return sortedMapCollector(Entry::getKey, Entry::getValue);
   }
 
+  Collector<String, ?, Path> pathCollector();
 
+  
   //Other:
 
   Path emptyPath();
+  
+  Path pathFrom(final Collection<String> collection);
 
   <E> XStream<E> xStream(Stream<E> s);
 
   <E> XStream<E> pStream(Stream<E> s);
 
   <E> XStream<E> xStream(Spliterator<E> spliterator, boolean parallel);
+
 }

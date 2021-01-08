@@ -48,6 +48,11 @@ public interface ISortedSet<E extends Comparable<? super E>> extends ISet<E>, Na
   cast(final ISortedSet<? extends E> set){return (ISortedSet<E>) set;}
 
   @Override
+  default boolean isEmpty(){
+    return size()==0;
+  }
+  
+  @Override
   default ISortedSet<E> subSet(final E fromElement, final E toElement){
     return this.subSet(fromElement, true, toElement, false);
   }

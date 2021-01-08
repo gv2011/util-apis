@@ -1,36 +1,15 @@
 package com.github.gv2011.util;
 
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2019 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.joining;
+
+import java.util.stream.IntStream;
 
 import com.github.gv2011.util.bytes.ByteUtils;
 import com.github.gv2011.util.bytes.BytesBuilder;
+import com.github.gv2011.util.icol.ICollections;
+import com.github.gv2011.util.icol.Path;
 
 public final class UrlEncoding {
 
@@ -60,6 +39,39 @@ public final class UrlEncoding {
       }
     }
     return result.build().utf8ToString();
+  }
+
+  public static Path decodePath(String raw) {
+    final int query = raw.indexOf('?');
+    if(query!=-1) raw = raw.substring(0, query);
+    final int fragment = raw.indexOf('#');
+    if(fragment!=-1) raw = raw.substring(0, fragment);
+    return StringUtils.split(raw, '/').stream().map(UrlEncoding::decode).collect(ICollections.toPath());
+  }
+  
+  public static String encodePathElement(String pathElement){
+    return pathElement.codePoints()
+      .flatMap(cp->encodeChar(cp))
+      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+      .toString()
+    ;
+  }
+
+  private static IntStream encodeChar(int cp) {
+    if(cp>='a' && cp<='z' || cp>='A' && cp<='Z' || cp>='0' && cp<='9' || cp=='-' || cp=='.' || cp=='_' || cp=='~'){
+      return IntStream.of(cp);
+    }
+    else {
+      final byte[] bytes = new String(Character.toChars(cp)).getBytes(UTF_8);
+      return IntStream.range(0, bytes.length).flatMap(i -> {
+        final byte b = bytes[i];
+        return IntStream.of('%', ByteUtils.firstHex(b), ByteUtils.secondHex(b));
+      });
+    }
+  }
+
+  public static String encodePath(Path path) {
+    return path.stream().map(UrlEncoding::encodePathElement).collect(joining("/"));
   }
 
 }

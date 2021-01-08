@@ -36,9 +36,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.stream.Collectors;
 
-import jakarta.activation.MimeType;
-import jakarta.activation.MimeTypeParameterList;
-
 import com.github.gv2011.util.BeanUtils;
 import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.Constants;
@@ -47,10 +44,14 @@ import com.github.gv2011.util.beans.Computed;
 import com.github.gv2011.util.beans.ExtendedBeanBuilder;
 import com.github.gv2011.util.beans.Parser;
 import com.github.gv2011.util.beans.Validator;
+import com.github.gv2011.util.icol.ICollections;
 import com.github.gv2011.util.icol.ISortedMap;
 import com.github.gv2011.util.icol.ISortedSet;
 import com.github.gv2011.util.icol.Opt;
 import com.github.gv2011.util.serviceloader.RecursiveServiceLoader;
+
+import jakarta.activation.MimeType;
+import jakarta.activation.MimeTypeParameterList;
 
 public final class DataTypeImp implements DataType {
 
@@ -106,6 +107,21 @@ public final class DataTypeImp implements DataType {
   @Computed
   public Opt<Charset> charset() {
     return core.parameters().tryGet(DataType.CHARSET_PARAMETER_NAME).map(Charset::forName);
+  }
+  
+  @Override
+  public DataType withCharset(Charset charset) {
+    return BeanUtils.beanBuilder(DataType.class)
+      .set(DataType::primaryType).to(core.primaryType())
+      .set(DataType::subType).to(core.subType())
+      .set(DataType::parameters).to(
+        ICollections.<String, String>sortedMapBuilder()
+        .putAll(core.parameters())
+        .put(CHARSET_PARAMETER_NAME, charset.name())
+        .build()
+      )
+      .build()
+    ;
   }
 
   @Override

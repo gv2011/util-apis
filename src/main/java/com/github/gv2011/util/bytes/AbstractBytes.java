@@ -60,7 +60,6 @@ import com.github.gv2011.util.uc.UStr;
 @Immutable
 public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
 
-  private static String HEX_CHARS = "0123456789ABCDEF";
   private final Constant<Integer> hashCodeCache = Constants.cachedConstant(super::hashCode);
   private final Constant<String> toStringCache = Constants.softRefConstant(this::toStringImp);
   private final Constant<Hash256> hashCache = Constants.cachedConstant(this::hashImp);
@@ -80,8 +79,8 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
     final char[] result = new char[s==0?0:s*3-1];
     int i=0;
     for(final byte b: this){
-      result[i*3] = HEX_CHARS.charAt((b>>4) & 0xF);
-      result[i*3+1] = HEX_CHARS.charAt(b & 0xF);
+      result[i*3] = ByteUtils.firstHex(b);
+      result[i*3+1] = ByteUtils.secondHex(b);
       if(i<s-1)result[i*3+2] = ' ';
       i++;
     }
