@@ -1,31 +1,5 @@
 package com.github.gv2011.util.sec;
 
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2017 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-
 import static com.github.gv2011.util.NumUtils.withLeadingZeros;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.Verify.verifyEqual;
@@ -68,15 +42,18 @@ import javax.net.ssl.TrustManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.FileUtils;
 import com.github.gv2011.util.bytes.ByteUtils;
 import com.github.gv2011.util.bytes.Bytes;
 import com.github.gv2011.util.bytes.BytesBuilder;
 import com.github.gv2011.util.bytes.Hash256;
+import com.github.gv2011.util.bytes.TypedBytes;
 import com.github.gv2011.util.ex.ThrowingConsumer;
 import com.github.gv2011.util.ex.ThrowingSupplier;
 import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.icol.Opt;
+import com.github.gv2011.util.serviceloader.RecursiveServiceLoader;
 
 public final class SecUtils {
 
@@ -100,6 +77,19 @@ public final class SecUtils {
 
   @SuppressWarnings("unused")
   private static final Logger LOG = LoggerFactory.getLogger(SecUtils.class);
+  
+  
+  static final Constant<SecProvider> SEC_PROVIDER =
+    RecursiveServiceLoader.lazyService(SecProvider.class)
+  ;
+  
+  public static final SimpleKeyStore createSimpleKeyStore(Domain domain){
+    return SEC_PROVIDER.get().createSimpleKeyStore(domain);
+  }
+
+  public static final SimpleKeyStore loadSimpleKeyStore(TypedBytes bytes){
+    return SEC_PROVIDER.get().loadSimpleKeyStore(bytes);
+  }
 
   public static RSAPublicKey createRsaPublicKey(final BigInteger modulus, final BigInteger publicExponent){
     return (RSAPublicKey) call(()->
@@ -141,17 +131,21 @@ public final class SecUtils {
   }
 
   public static final void writeCertificateChain(final IList<X509Certificate> certChain, final Path folder){
+    writeCertificateChain(certChain, folder, CERT_FILE_PATTERN);
+  }
+
+  public static final void writeCertificateChain(final IList<X509Certificate> certChain, final Path folder, String certFilePattern){
     int i=0;
     boolean done = false;
     while(!done){
-      final Path certFile = certFile(folder, i);
+      final Path certFile = certFile(folder, i, certFilePattern);
       final boolean deleted = FileUtils.deleteFile(certFile);
       if(!deleted && i>=certChain.size()) done=true;
       i++;
     }
     for(i=0; i<certChain.size(); i++){
       final X509Certificate cert = certChain.get(i);
-      ByteUtils.newBytes(call(cert::getEncoded)).write(certFile(folder,i));
+      ByteUtils.newBytes(call(cert::getEncoded)).write(certFile(folder,i, certFilePattern));
     }
   }
 
@@ -174,18 +168,26 @@ public final class SecUtils {
   }
 
   public static final IList<X509Certificate> readCertificateChain(final Path folder){
+    return readCertificateChain(folder, CERT_FILE_PATTERN);
+  }
+
+  public static final IList<X509Certificate> readCertificateChain(final Path folder, String certFilePattern){
     final IList.Builder<X509Certificate> chain = listBuilder();
     int i = 0;
-    Path certFile = certFile(folder, i);
+    Path certFile = certFile(folder, i, certFilePattern);
     while(Files.exists(certFile)){
       chain.add(readCertificate(ByteUtils.read(certFile)));
-      certFile = certFile(folder, ++i);
+      certFile = certFile(folder, ++i, certFilePattern);
     }
     return chain.build();
   }
 
   private static Path certFile(final Path folder, final int i) {
-    return folder.resolve(format(CERT_FILE_PATTERN,withLeadingZeros(i+1,2)));
+    return certFile(folder, i, CERT_FILE_PATTERN);
+  }
+
+  private static Path certFile(final Path folder, final int i, String certFilePattern) {
+    return folder.resolve(format(certFilePattern,withLeadingZeros(i+1,2)));
   }
 
 
@@ -211,6 +213,16 @@ public final class SecUtils {
       RsaKeyPair.parse(ByteUtils.read(certificateDirectory.resolve(KEY_FILE_NAME))),
       listOf(readCertificate(ByteUtils.read(certFile(certificateDirectory, 0))))
     );
+  }
+  
+  public static final KeyStore addToKeyStore(final ServerCertificate serverCertificate, final KeyStore keystore){
+    addToKeyStore(
+      serverCertificate.keyPair(),
+      serverCertificate.certificateChain(),
+      keystore,
+      Opt.of(serverCertificate.domain().toString())
+    );
+    return keystore;
   }
 
   public static final KeyStore addToKeyStore(
@@ -325,7 +337,7 @@ public final class SecUtils {
       }
       if(!Files.exists(certFile)){
         ByteUtils.newBytes(
-          CertificateBuilder.create().build(RsaKeyPair.parse(ByteUtils.read(keyFile))).getEncoded()
+          SEC_PROVIDER.get().createCertificateBuilder().build(RsaKeyPair.parse(ByteUtils.read(keyFile))).getEncoded()
         ).write(certFile);
       }
     });
@@ -372,6 +384,15 @@ public final class SecUtils {
   public static RSAPublicKey getPublicKey(final Path certificateDirectory) {
     createCertificateIfMissing(certificateDirectory);
     return RsaKeyPair.parse(ByteUtils.read(certificateDirectory.resolve(KEY_FILE_NAME))).getPublic();
+  }
+  
+  public static final DestroyingCloseable asDestroyable(KeyStore keyStore){
+    return new KeyStoreDestroyer(keyStore);
+  }
+
+  public static KeyStore createSimpleKeyStore() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

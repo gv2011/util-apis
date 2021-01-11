@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -19,7 +21,7 @@
       <url>https://github.com/gv2011/</url>
     </developer>
   </developers>
-  
+
   <licenses>
     <license>
       <name>The MIT License</name>
@@ -32,7 +34,7 @@
       </comments>
     </license>
   </licenses>
-  
+
   <properties>
     <java.release>11</java.release>
   </properties>
@@ -43,11 +45,22 @@
     <url>https://github.com/gv2011/util-apis</url>
     <tag>HEAD</tag>
   </scm>
-  
+
   <dependencies>
     <dependency>
       <groupId>jakarta.activation</groupId>
       <artifactId>jakarta.activation-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

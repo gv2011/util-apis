@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 import com.github.gv2011.util.Constant;
+import com.github.gv2011.util.icol.Opt;
 import com.github.gv2011.util.serviceloader.RecursiveServiceLoader;
 import com.github.gv2011.util.serviceloader.Service;
 
@@ -26,5 +27,11 @@ public interface Clock {
   void notifyAfter(Object obj, Duration duration);
 
   void notifyAt(final Object obj, final Instant notifyAt);
+
+  default boolean hasPassed(Instant time){
+    return instant().isAfter(time);
+  }
+  
+  Poller poller(Duration interval, Opt<Duration> timeout);
 
 }

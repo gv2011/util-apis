@@ -113,6 +113,9 @@ public interface XStream<E> extends Stream<E>, AutoCloseableNt{
   @Override
   XStream<E> sorted(Comparator<? super E> comparator);
 
+  @Override
+  XStream<E> sorted();
+
 
   @Override
   <R> XStream<R> map(Function<? super E, ? extends R> mapper);

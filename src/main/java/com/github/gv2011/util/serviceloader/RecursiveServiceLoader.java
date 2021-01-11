@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,6 +81,9 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
   static final String DOWNLOADER_FACTORY = "com.github.gv2011.util.download.DownloadTask$Factory";
   static final String DEFAULT_DOWNLOADER_FACTORY = "com.github.gv2011.util.download.imp.DefaultDownloadTaskFactory";
 
+//  static final String UNICODE_PROVIDER = "com.github.gv2011.util.uc.UnicodeProvider";
+//  static final String DEFAULT_UNICODE_PROVIDER = "com.github.gv2011.util.uc.JdkUnicodeProvider";
+
 
   private static final Map<String,String> DEFAULT_SERVICES =
     Collections.unmodifiableMap(
@@ -88,7 +92,8 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
         new String[]{DATA_TYPE_PROVIDER, DEFAULT_DATA_TYPE_PROVIDER},
         new String[]{CLOCK, DEFAULT_CLOCK},
         new String[]{LOCK_FACTORY, DEFAULT_LOCK_FACTORY},
-        new String[]{DOWNLOADER_FACTORY, DEFAULT_DOWNLOADER_FACTORY}
+        new String[]{DOWNLOADER_FACTORY, DEFAULT_DOWNLOADER_FACTORY},
+//        new String[]{UNICODE_PROVIDER, DEFAULT_UNICODE_PROVIDER}
       })
       .collect(Collectors.toMap(e->e[0], e->e[1]))
     )
@@ -113,6 +118,12 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
     return Constants.cachedConstant(()->service(serviceClass));
   }
 
+  public static final <S> Constant<S> lazyService(final Class<S> serviceClass, Supplier<S> fallback) {
+    return Constants.cachedConstant(()->{
+      final Opt<S> tryGetService = tryGetService(serviceClass);
+      return tryGetService.orElseGet(fallback);
+      });
+  }
 
   public static final <S> Opt<S> tryGetService(final Class<S> serviceClass) {
     return INSTANCE.get().tryGetServiceInternal(serviceClass);

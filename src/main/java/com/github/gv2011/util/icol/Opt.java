@@ -30,12 +30,14 @@ import static com.github.gv2011.util.ex.Exceptions.format;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 
 import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.Nothing;
@@ -154,6 +156,14 @@ public interface Opt<E> extends ISet<E>, Constant<E>{
 
   default <T> Opt<T> tryCast(final Class<T> clazz){
     return flatMap(o->clazz.isInstance(o) ? of(clazz.cast(o)) : empty());
+  }
+
+  default OptionalInt mapToInt(ToIntFunction<? super E> mapping){
+    return isPresent() ? OptionalInt.of(mapping.applyAsInt(get())) : OptionalInt.empty();
+  }
+
+  default OptionalInt flatMapToInt(Function<? super E, OptionalInt> mapping){
+    return isPresent() ? mapping.apply(get()) : OptionalInt.empty();
   }
 
 }

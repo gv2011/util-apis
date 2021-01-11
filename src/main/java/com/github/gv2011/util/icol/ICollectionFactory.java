@@ -31,6 +31,7 @@ import java.util.Arrays;
  */
 
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -41,6 +42,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.github.gv2011.util.XStream;
+import com.github.gv2011.util.icol.IList.Builder;
 
 
 public interface ICollectionFactory {
@@ -194,6 +196,15 @@ public interface ICollectionFactory {
   }
 
 
+  //Legacy:
+  
+  default <E> IList<E> asList(Enumeration<? extends E> elements){
+    final Builder<E> b = listBuilder();
+    while(elements.hasMoreElements()) b.add(elements.nextElement());
+    return b.build();
+  }
+  
+  
   //Builders:
 
   <E> IList.Builder<E> listBuilder();

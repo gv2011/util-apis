@@ -120,6 +120,12 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
       }
     }
   }
+  
+  @Override
+  public final Poller poller(Duration interval, Opt<Duration> timeout){
+    return new PollerImp(this, interval, timeout);
+  }
+
 
   private void wakeupClock() {
     assert Thread.holdsLock(lock);
@@ -195,7 +201,7 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
       }
     }
 
-    if(greaterThanZero(duration)) {
+    if(TimeUtils.isPositive(duration)) {
       try {
         logSleep(t, duration, tickOnly);
         Thread.sleep(duration.toMillis());
@@ -235,7 +241,4 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
     LOG.info("Closed {}.", this);
   }
 
-  private static boolean greaterThanZero(final Duration duration){
-    return !duration.isNegative() && !duration.isZero();
-  }
 }

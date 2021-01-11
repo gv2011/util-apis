@@ -1,31 +1,5 @@
 package com.github.gv2011.util.sec;
 
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2017 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.Verify.verifyEqual;
 import static com.github.gv2011.util.ex.Exceptions.call;
@@ -42,10 +16,13 @@ import javax.security.auth.DestroyFailedException;
 import javax.security.auth.Destroyable;
 
 import com.github.gv2011.util.Equal;
+import com.github.gv2011.util.beans.NoDefaultValue;
 import com.github.gv2011.util.bytes.ByteUtils;
 import com.github.gv2011.util.bytes.Bytes;
+import com.github.gv2011.util.tstr.AbstractTypedString;
 
-public final class RsaKeyPair implements Destroyable{
+@NoDefaultValue
+public final class RsaKeyPair extends AbstractTypedString<RsaKeyPair> implements Destroyable{
 
   public static final RsaKeyPair create(final KeyPair keyPair){
     final RSAPrivateCrtKey priv = (RSAPrivateCrtKey)keyPair.getPrivate();
@@ -65,8 +42,12 @@ public final class RsaKeyPair implements Destroyable{
   }
 
   public static final RsaKeyPair parse(final Bytes bytes){
+    return RsaKeyPair.create(parseRSAPrivateCrtKey(bytes));
+  }
+
+  private static final RSAPrivateCrtKey parseRSAPrivateCrtKey(final Bytes bytes){
     final PKCS8EncodedKeySpec spec =  new PKCS8EncodedKeySpec(bytes.toByteArray());
-    return RsaKeyPair.create((RSAPrivateCrtKey)call(()->KeyFactory.getInstance(RSA).generatePrivate(spec)));
+    return (RSAPrivateCrtKey)call(()->KeyFactory.getInstance(RSA).generatePrivate(spec));
   }
 
   public static final void check(final RSAPublicKey pub, final RSAPrivateCrtKey priv){
@@ -75,6 +56,10 @@ public final class RsaKeyPair implements Destroyable{
   }
 
   private final RSAPrivateCrtKey priv;
+  
+  public RsaKeyPair(String base64){
+    this(parseRSAPrivateCrtKey(ByteUtils.asUtf8(base64).content().decodeBase64()));
+  }
 
   private RsaKeyPair(final RSAPrivateCrtKey priv) {
     this.priv = priv;
@@ -127,6 +112,21 @@ public final class RsaKeyPair implements Destroyable{
 
   public KeyPair asKeyPair(){
     return new KeyPair(getPublic(), priv);
+  }
+
+  @Override
+  public RsaKeyPair self() {
+    return this;
+  }
+
+  @Override
+  public Class<RsaKeyPair> clazz() {
+    return RsaKeyPair.class;
+  }
+
+  @Override
+  public String toString() {
+    return encode().toBase64().utf8ToString();
   }
 
 }

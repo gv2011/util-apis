@@ -1,45 +1,51 @@
 package com.github.gv2011.util.sec;
 
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2018 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
+import static com.github.gv2011.util.Verify.notNull;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.Verify.verifyEqual;
 
-import java.net.IDN;
+import java.security.Principal;
+import java.util.Locale;
 
+import com.github.gv2011.util.StringUtils;
+import com.github.gv2011.util.beans.DefaultValue;
 import com.github.gv2011.util.tstr.AbstractTypedString;
+import com.github.gv2011.util.uc.TextUtils;
+import com.github.gv2011.util.uc.UnicodeProvider;
 
-public class Domain extends AbstractTypedString<Domain>{
+@DefaultValue("localhost")
+public class Domain extends AbstractTypedString<Domain> {
+
+  private static final UnicodeProvider PROV = TextUtils.UNICODE_PROVIDER.get();
+  
+  public static final Domain LOCALHOST = new Domain("localhost");
+
+  public static Domain parse(String domain) {
+    return domain.equals(LOCALHOST.domain) ? LOCALHOST : new Domain(domain.toLowerCase(Locale.ROOT).trim());
+  }
+
+  public static Domain from(Principal principal) {
+    return parse(StringUtils.removePrefix(principal.getName(), "CN="));
+  }
+  
+//  private static final int IDN_FLAGS = IDN.ALLOW_UNASSIGNED | IDN.USE_STD3_ASCII_RULES;
+  
 
   private final String domain;
 
   public Domain(final String domain) {
     verify(!domain.isEmpty());
-    verifyEqual(domain, domain.toLowerCase().trim());
-    this.domain = domain;
+    verifyEqual(domain, domain.toLowerCase(Locale.ROOT).trim());
+    final int i = domain.indexOf('|');
+    if(i==-1){
+      this.domain = notNull(PROV).idnaNameToASCII(domain);
+    }
+    else{
+      final String ascii = domain.substring(0, i);
+      final String idnAscii = PROV.idnaNameToASCII(domain.substring(i+1));
+      if(idnAscii.equals(ascii)) this.domain = idnAscii;
+      else this.domain = domain;
+    }
   }
 
   @Override
@@ -57,9 +63,14 @@ public class Domain extends AbstractTypedString<Domain>{
     return domain;
   }
 
-  public String toAscii() {
-    return IDN.toASCII(domain);
+  public String toUnicode() {
+    final int i = domain.indexOf('|');
+    return i == -1 ? PROV.idnaNameToUnicode(domain) : domain.substring(i+1);
   }
 
+  public String toAscii() {
+    final int i = domain.indexOf('|');
+    return i==-1 ? domain : domain.substring(0, i);
+  }
 
 }

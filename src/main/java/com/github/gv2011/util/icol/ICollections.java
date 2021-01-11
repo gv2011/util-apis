@@ -29,6 +29,7 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
  */
 
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -197,6 +198,13 @@ public final class ICollections {
 
   public static <E extends Comparable<? super E>> ISortedSet<E> asSortedSet(final E[] elements){
     return iCollections().asSortedSet(elements);
+  }
+  
+  
+  //Legacy:
+  
+  public static <E> IList<E> asList(Enumeration<? extends E> elements){
+    return iCollections().asList(elements);
   }
 
 
