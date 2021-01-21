@@ -30,6 +30,7 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.log;
   exports com.github.gv2011.util.m2t;
   exports com.github.gv2011.util.main;
+  exports com.github.gv2011.util.net;
   exports com.github.gv2011.util.sec;
   exports com.github.gv2011.util.serviceloader;
   exports com.github.gv2011.util.time;

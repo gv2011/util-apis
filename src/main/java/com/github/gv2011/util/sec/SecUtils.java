@@ -28,6 +28,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 
 import javax.net.ssl.KeyManager;
@@ -95,6 +96,10 @@ public final class SecUtils {
     return (RSAPublicKey) call(()->
       KeyFactory.getInstance(RSA).generatePublic(new RSAPublicKeySpec(modulus, publicExponent))
     );
+  }
+
+  public static RSAPublicKey parseRsaPublicKey(Bytes encodedKey){
+    return (RSAPublicKey)call(()->KeyFactory.getInstance(RSA).generatePublic(new X509EncodedKeySpec(encodedKey.toByteArray())));
   }
 
   public static final X509Certificate readCertificate(final Bytes bytes){
@@ -388,11 +393,6 @@ public final class SecUtils {
   
   public static final DestroyingCloseable asDestroyable(KeyStore keyStore){
     return new KeyStoreDestroyer(keyStore);
-  }
-
-  public static KeyStore createSimpleKeyStore() {
-    // TODO Auto-generated method stub
-    return null;
   }
 
 }

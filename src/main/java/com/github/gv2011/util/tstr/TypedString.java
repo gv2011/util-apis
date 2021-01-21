@@ -32,9 +32,11 @@ public interface TypedString<T extends TypedString<T>> extends CharSequence, Com
     }
 
     public static boolean equal(final TypedString<?> s, final Object obj) {
-      return Equal.equal(s, obj, TypedString.class, o->{
-        return s.clazz().equals(o.clazz()) && s.toString().equals(o.toString());
-      });
+      return s==obj ? true
+        : Equal.equal(s, obj, TypedString.class, o->{
+          return s.clazz().equals(o.clazz()) && s.toString().equals(o.toString());
+        })
+      ;
     }
 
 

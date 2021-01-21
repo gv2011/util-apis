@@ -28,26 +28,33 @@ package com.github.gv2011.util.bytes;
 
 import static com.github.gv2011.util.CollectionUtils.pair;
 import static com.github.gv2011.util.ex.Exceptions.call;
+import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.ex.Exceptions.notYetImplementedException;
 import static com.github.gv2011.util.ex.Exceptions.wrap;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.MessageDigest;
 import java.util.AbstractList;
 import java.util.Base64;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+
+import org.slf4j.Logger;
 
 import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.Constants;
@@ -59,6 +66,8 @@ import com.github.gv2011.util.uc.UStr;
 
 @Immutable
 public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
+  
+  private static final Logger LOG = getLogger(AbstractBytes.class);
 
   private final Constant<Integer> hashCodeCache = Constants.cachedConstant(super::hashCode);
   private final Constant<String> toStringCache = Constants.softRefConstant(this::toStringImp);
@@ -152,8 +161,28 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
 
 
   @Override
-  public void write(final Path file) {
+  public final void write(final Path file) {
+    write(file, false);
+  }
+
+  @Override
+  public final void write(final Path file, boolean onlyOwner) {
     checkNotClosed();
+    if(onlyOwner){
+      try {
+        Files.createFile(file);
+      } catch (FileAlreadyExistsException e) {        
+      } catch (IOException e) {
+        throw wrap(e);
+      }
+      try {
+        Files.setPosixFilePermissions(file, EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+      } catch (UnsupportedOperationException e) {
+        LOG.warn(format("Cannot set only user can read permissions on file {}.", file), e);
+      } catch (IOException e) {
+        throw wrap(e);
+      }
+    }
     try(OutputStream stream = Files.newOutputStream(file, CREATE, TRUNCATE_EXISTING)) {
       write(stream);
     } catch (final IOException e) {throw wrap(e);}

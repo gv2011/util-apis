@@ -3,11 +3,8 @@ package com.github.gv2011.util.http;
 import java.util.OptionalInt;
 
 import com.github.gv2011.util.AutoCloseableNt;
-import com.github.gv2011.util.bytes.TypedBytes;
-import com.github.gv2011.util.icol.Path;
-import com.github.gv2011.util.sec.Domain;
 
-public interface HttpServer extends AutoCloseableNt, AcmeAccess{
+public interface HttpServer extends AutoCloseableNt{
 
   OptionalInt httpsPort();
   

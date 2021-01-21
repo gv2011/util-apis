@@ -96,7 +96,11 @@ public interface Bytes extends List<Byte>, Comparable<Bytes>, OptCloseable{
 
   void write(final OutputStream stream);
 
-  void write(final Path file);
+  default void write(final Path file){
+    write(file, false);
+  }
+
+  void write(final Path file, boolean onlyOwner);
 
   byte getByte(int i);
 

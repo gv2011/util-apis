@@ -19,7 +19,7 @@ public final class TrustAllTrustManager extends X509ExtendedTrustManager{
 
   @Override
   public X509Certificate[] getAcceptedIssuers() {
-    throw new UnsupportedOperationException();
+    return new X509Certificate[0];
   }
 
   @Override

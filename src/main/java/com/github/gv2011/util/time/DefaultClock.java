@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.gv2011.util.AutoCloseableNt;
+import com.github.gv2011.util.ex.ThrowingRunnable;
 import com.github.gv2011.util.icol.Opt;
 
 public final class DefaultClock implements Clock, AutoCloseableNt {
@@ -52,6 +53,8 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultClock.class);
 
   private static final Duration LOG_TICK_PERIOD = Duration.ofSeconds(10);
+  
+  static interface Inline extends Runnable{}
 
   private final Object lock = new Object();
   private final Thread thread;
@@ -102,9 +105,7 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
   private void notifyAt(final Object obj, final Instant notifyAt, final Instant now) {
     notNull(obj);
     if (!notifyAt.isAfter(now)) {
-      synchronized (obj) {
-        obj.notifyAll();
-      }
+      notify(obj);
     } else {
       synchronized (lock) {
         final Opt<Instant> actualNext = tryGetFirstKey(notifications);
@@ -121,6 +122,11 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
     }
   }
   
+  @Override
+  public AutoCloseableNt runAtInterval(ThrowingRunnable operation, Duration interval) {
+    return new PeriodicalTask(this, operation, interval);
+  }
+
   @Override
   public final Poller poller(Duration interval, Opt<Duration> timeout){
     return new PollerImp(this, interval, timeout);
@@ -175,7 +181,12 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
 
   private void notify(final Object object){
     verify(!Thread.holdsLock(lock));
-    synchronized(object){object.notifyAll();}
+    if(object instanceof Inline){
+      ((Inline)object).run();
+    }
+    else{
+      synchronized(object){object.notifyAll();}
+    }
   }
 
   private void sleepUntilInternal(final Instant now, final Opt<Instant> t) {
