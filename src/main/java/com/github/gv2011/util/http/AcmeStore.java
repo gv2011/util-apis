@@ -19,7 +19,7 @@ public interface AcmeStore extends AutoCloseableNt{
   
   Opt<URI> accountUrl();
   
-  ISet<Domain> domains();
+  ISet<Domain> availableDomains();
 
   DomainEntry getEntry(Domain host);
 
