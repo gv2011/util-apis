@@ -42,6 +42,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -164,13 +166,14 @@ public abstract class MainUtils implements MainUtilsMBean, AutoCloseableNt{
         started = true;
       }
       int resultCode = 3;
-      final CountDownLatch mainDone = new CountDownLatch(1);
+      final BlockingQueue<Integer> mainDone = new ArrayBlockingQueue<>(1);
       try{
         pidLog = logPid(log);
         Runtime.getRuntime().addShutdownHook(new Thread(
           ()->{
             shutdownLatch.countDown();
-            call(()->mainDone.await());
+            final int exitCode = call(()->mainDone.take());
+            System.exit(exitCode);
           },
           "shutdown"
         ));
@@ -203,7 +206,10 @@ public abstract class MainUtils implements MainUtilsMBean, AutoCloseableNt{
       }
       finally{
         try{serviceLoader.close();}
-        finally{mainDone.countDown();}
+        finally{
+          final int exitCode = resultCode;
+          call(()->mainDone.put(exitCode));
+        }
       }
       return resultCode;
     }

@@ -27,4 +27,10 @@ extends IList<E>, Comparable<P>{
   @Override
   P subList(final int fromIndex, final int toIndex);
   
+  default boolean endsWith(P suffix){
+    if(suffix.size()>size()) return false;
+    else return subList(size()-suffix.size(), size()).equals(suffix);
+  }
+
+  
 }

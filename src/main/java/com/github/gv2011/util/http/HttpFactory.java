@@ -31,8 +31,10 @@ public interface HttpFactory {
 
   HttpServer createServer(
     IList<Pair<Space,RequestHandler>> handlers, 
+    Predicate<Domain> isHttpsHost,
     OptionalInt httpPort,
     OptionalInt httpsPort,
+    OptionalInt tokenPort,
     AcmeStore acmeStore
   );
 

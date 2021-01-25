@@ -34,7 +34,6 @@ import static com.github.gv2011.util.icol.ICollections.listBuilder;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.SortedSet;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -42,6 +41,7 @@ import java.util.stream.Stream;
 
 import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.icol.IList.Builder;
+import com.github.gv2011.util.icol.Opt;
 
 public final class StringUtils {
 
@@ -80,9 +80,9 @@ public final class StringUtils {
     return s.toUpperCase(Locale.ROOT);
   }
 
-  public static Optional<String> tryRemovePrefix(final String s, final String prefix) {
-    if(!s.startsWith(prefix)) return Optional.empty();
-    else return Optional.of(s.substring(prefix.length()));
+  public static Opt<String> tryRemovePrefix(final String s, final String prefix) {
+    if(!s.startsWith(prefix)) return Opt.empty();
+    else return Opt.of(s.substring(prefix.length()));
   }
 
   public static Function<String,Stream<String>> tryRemovePrefix(final String prefix) {
