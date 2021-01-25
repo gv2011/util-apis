@@ -2,6 +2,7 @@ package com.github.gv2011.util.sec;
 
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.icol.ICollections.pathFrom;
+import static java.util.stream.Collectors.joining;
 
 import java.security.Principal;
 import java.util.Locale;
@@ -25,11 +26,15 @@ public class Domain extends AbstractTypedString<Domain> {
     domain = domain.toLowerCase(Locale.ROOT).trim();
     if(domain.equals(LOCALHOST.ascii)) return LOCALHOST;
     else{
-      verify(!domain.isEmpty());
+      verify(!domain.isEmpty(), ()->"Domain is empty.");
       return new Domain(PROV.idnaNameToASCII(domain));
     }
   }
 
+  public static Domain parse(Path path) {
+    return parse(path.stream().collect(joining(".")));
+  }
+  
   public static Domain from(Principal principal) {
     return parse(StringUtils.removePrefix(principal.getName(), "CN="));
   }
@@ -74,4 +79,5 @@ public class Domain extends AbstractTypedString<Domain> {
   public boolean isLocalhost() {
     return equals(LOCALHOST);
   }
+
 }
