@@ -81,8 +81,11 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
   static final String DOWNLOADER_FACTORY = "com.github.gv2011.util.download.DownloadTask$Factory";
   static final String DEFAULT_DOWNLOADER_FACTORY = "com.github.gv2011.util.download.imp.DefaultDownloadTaskFactory";
 
-//  static final String UNICODE_PROVIDER = "com.github.gv2011.util.uc.UnicodeProvider";
-//  static final String DEFAULT_UNICODE_PROVIDER = "com.github.gv2011.util.uc.JdkUnicodeProvider";
+  static final String UNICODE_PROVIDER = "com.github.gv2011.util.uc.UnicodeProvider";
+  static final String DEFAULT_UNICODE_PROVIDER = "com.github.gv2011.util.uc.JdkUnicodeProvider";
+
+  static final String EMAIL_PROVIDER = "com.github.gv2011.util.email.MailProvider";
+  static final String DEFAULT_EMAIL_PROVIDER = "com.github.gv2011.util.email.imp.DefaultMailProvider";
 
 
   private static final Map<String,String> DEFAULT_SERVICES =
@@ -93,7 +96,7 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
         new String[]{CLOCK, DEFAULT_CLOCK},
         new String[]{LOCK_FACTORY, DEFAULT_LOCK_FACTORY},
         new String[]{DOWNLOADER_FACTORY, DEFAULT_DOWNLOADER_FACTORY},
-//        new String[]{UNICODE_PROVIDER, DEFAULT_UNICODE_PROVIDER}
+        new String[]{UNICODE_PROVIDER, DEFAULT_UNICODE_PROVIDER}
       })
       .collect(Collectors.toMap(e->e[0], e->e[1]))
     )

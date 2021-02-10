@@ -1,7 +1,7 @@
 package com.github.gv2011.util.bytes;
 
 import static com.github.gv2011.util.StringUtils.toLowerCase;
-import static com.github.gv2011.util.Verify.verifyEqualsResult;
+import static com.github.gv2011.util.Verify.verifyEqual;
 /*-
  * #%L
  * The MIT License (MIT)
@@ -178,13 +178,19 @@ public final class DataTypeImp implements DataType {
         .collect(toISortedMap(
           name->name,
           name->(name.equals(CHARSET_PARAMETER_NAME)
-            ? verifyEqualsResult(mimeType.getParameter(name), cs->Charset.forName(cs).name())
+            ? canonicalCharsetName(mimeType.getParameter(CHARSET_PARAMETER_NAME))
             : mimeType.getParameter(name)
           )
         ))
       )
     ;
     return builder.buildUnvalidated();
+  }
+
+  private static String canonicalCharsetName(final String charset) {
+    final String name = Charset.forName(charset).name();
+    verifyEqual(toLowerCase(charset), toLowerCase(name));
+    return name;
   }
 
 //  private void parse2(final String rawdata) throws MimeTypeParseException {

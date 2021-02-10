@@ -186,9 +186,16 @@ public final class FileUtils {
   public static FileExtension getExtension(final Path path){
     final Path fileName = path.getFileName();
     if(fileName==null) throw new IllegalArgumentException();
-    final String n = fileName.toString();
-    final int i = n.lastIndexOf('.');
-    return new FileExtension(i==-1?"":n.substring(i+1, n.length()).toLowerCase(Locale.ENGLISH));
+    return getExtension(fileName.toString());
+  }
+
+  public static FileExtension getExtension(final URL url){
+    return getExtension(url.getPath());
+  }
+
+  private static FileExtension getExtension(final String path){
+    final int i = path.lastIndexOf('.');
+    return FileExtension.parse(i==-1?"":path.substring(i+1, path.length()).toLowerCase(Locale.ROOT));
   }
 
   public static void delete(final Path file) {

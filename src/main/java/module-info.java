@@ -19,6 +19,7 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.cache;
   exports com.github.gv2011.util.context;
   exports com.github.gv2011.util.download;
+  exports com.github.gv2011.util.email;
   exports com.github.gv2011.util.ex;
   exports com.github.gv2011.util.filewatch;
   exports com.github.gv2011.util.html;

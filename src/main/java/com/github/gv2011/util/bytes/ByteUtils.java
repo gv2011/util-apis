@@ -1,36 +1,6 @@
 package com.github.gv2011.util.bytes;
 
 import static com.github.gv2011.util.CollectionUtils.pair;
-
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2017 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-
-
-
-
 import static com.github.gv2011.util.NumUtils.isOdd;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
@@ -41,13 +11,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Random;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
@@ -55,15 +28,17 @@ import java.util.stream.IntStream;
 import com.github.gv2011.util.FileUtils;
 import com.github.gv2011.util.Pair;
 import com.github.gv2011.util.ex.ThrowingSupplier;
+import com.github.gv2011.util.icol.ICollections;
+import com.github.gv2011.util.icol.IMap;
 import com.github.gv2011.util.icol.Opt;
 
 public class ByteUtils {
 
   private ByteUtils(){staticClass();}
   
-  private static String HEX_CHARS = "0123456789ABCDEF";
-
-  private static final Bytes EMPTY = newBytes(new byte[0]);
+  private static final String HEX_CHARS = "0123456789ABCDEF";
+  
+  private static final IMap<DataType,Function<Bytes,TypedBytes>> TYPED_CONSTRUCTORS = createTypedConstructors();
 
   public static Bytes newBytes(final byte... bytes){
     return newBytes(bytes, 0, bytes.length);
@@ -72,18 +47,18 @@ public class ByteUtils {
   public static Bytes newBytes(final int... bytes){
     final byte[] a = new byte[bytes.length];
     for(int i=0; i<a.length; i++) a[i] = (byte) bytes[i];
-    return new ArrayBytes(a);
+    return ArrayBytes.create(a);
   }
 
   public static Bytes newBytes(final byte[] bytes, final int from, final int to) {
     final byte[] copy = Arrays.copyOfRange(bytes, from, to);
-    return new ArrayBytes(copy);
+    return ArrayBytes.create(copy);
   }
 
 
 
   public static Bytes parseHex(final String hex){
-    return new ArrayBytes(hexToByteArray(hex));
+    return ArrayBytes.create(hexToByteArray(hex));
   }
 
   public static byte[] hexToByteArray(final CharSequence hex){
@@ -106,7 +81,7 @@ public class ByteUtils {
 
 
   public static Bytes newBytes(final Bytes bytes){
-    return new ArrayBytes(bytes.toByteArray());
+    return ArrayBytes.create(bytes.toByteArray());
   }
 
   public static Bytes asBytes(final int i){
@@ -115,11 +90,11 @@ public class ByteUtils {
     array[2] = (byte)(i>>8);
     array[1] = (byte)(i>>16);
     array[0] = (byte)(i>>24);
-    return new ArrayBytes(array);
+    return ArrayBytes.create(array);
   }
 
   public static PlainText asUtf8(final String text){
-    return new PlainTextImp(new ArrayBytes(text.getBytes(UTF_8)));
+    return new PlainTextImp(ArrayBytes.create(text.getBytes(UTF_8)));
   }
 
   public static Hash256 hash(final String text){
@@ -179,7 +154,7 @@ public class ByteUtils {
 
   public static Bytes copyFromStream(final InputStream in, final long limit) {
     verify(limit>=0);
-    if(limit==0) return ByteUtils.EMPTY;
+    if(limit==0) return ArrayBytes.EMPTY;
     else{
       final BytesBuilder builder = newBytesBuilder();
       long remaining = limit;
@@ -214,13 +189,26 @@ public class ByteUtils {
     return new FileBytes(file);
   }
 
+  public static Bytes read(URL url) {
+    return copyFromStream(url::openStream);
+  }
+
   public static TypedBytes readTyped(final Path file) {
     DataType dataType = DataTypeProvider.instance().dataTypeForExtension(FileUtils.getExtension(file));
     if(dataType.charset().isEmpty() && dataType.primaryType().equals(DataTypes.TEXT)){
       dataType = dataType.withCharset(UTF_8);
     }
     final FileBytes bytes = new FileBytes(file);
-    return new DefaultTypedBytes(bytes, dataType);
+    return createTyped(bytes, dataType);
+  }
+
+  public static TypedBytes readTyped(final URL url) {
+    DataType dataType = DataTypeProvider.instance().dataTypeForExtension(FileUtils.getExtension(url));
+    if(dataType.charset().isEmpty() && dataType.primaryType().equals(DataTypes.TEXT)){
+      dataType = dataType.withCharset(UTF_8);
+    }
+    final Bytes bytes = read(url);
+    return createTyped(bytes, dataType);
   }
 
   public static BytesBuilder newBytesBuilder() {
@@ -236,11 +224,11 @@ public class ByteUtils {
   }
 
   public static Bytes emptyBytes() {
-    return EMPTY;
+    return ArrayBytes.EMPTY;
   }
 
   public static Bytes fromBigInteger(final BigInteger i) {
-    return new ArrayBytes(i.toByteArray());
+    return ArrayBytes.create(i.toByteArray());
   }
 
   public static Collector<Bytes,?,Bytes> joining(){
@@ -254,5 +242,26 @@ public class ByteUtils {
   public static char secondHex(byte b) {
     return HEX_CHARS.charAt(b & 0xF);
   }
+
+  public static Bytes parseBase64(String base64) {
+    return ArrayBytes.create(Base64.getDecoder().decode(base64));
+  }
+  
+  static final TypedBytes createTyped(final Bytes content, final DataType dataType){
+    return TYPED_CONSTRUCTORS.tryGet(dataType.baseType())
+      .map(c->c.apply(content))
+      .orElseGet(()->new DefaultTypedBytes(content, dataType))
+    ;
+  }
+
+  private static final IMap<DataType, Function<Bytes, TypedBytes>> createTypedConstructors() {
+    return ICollections.<DataType, Function<Bytes, TypedBytes>>mapBuilder()
+      .put(Hash256.ALGORITHM.getDataType(), Hash256Imp::new)
+      .put(DataTypes.TEXT_PLAIN, PlainTextImp::new)
+      .put(DataTypes.MESSAGE_RFC822, EmailImp::new)
+      .build()
+    ;
+  }
+
 
 }

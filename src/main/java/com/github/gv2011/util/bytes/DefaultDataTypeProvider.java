@@ -1,7 +1,7 @@
 package com.github.gv2011.util.bytes;
 
 import static com.github.gv2011.util.bytes.DataTypes.APPLICATION_OCTET_STREAM;
-import static com.github.gv2011.util.bytes.DataTypes.TEXT_PLAIN;
+import static com.github.gv2011.util.bytes.DataTypes.*;
 import static com.github.gv2011.util.icol.ICollections.emptySortedSet;
 import static com.github.gv2011.util.icol.ICollections.sortedSetOf;
 import static com.github.gv2011.util.icol.ICollections.toIList;
@@ -18,12 +18,13 @@ import com.github.gv2011.util.icol.Opt;
 
 public final class DefaultDataTypeProvider implements DataTypeProvider{
 
-  private static final FileExtension TXT = new FileExtension("txt");
+  private static final FileExtension TXT = FileExtension.parse("txt");
+  private static final FileExtension EML = FileExtension.parse("eml");
   
   @Override
   public ISet<DataType> knownDataTypes() {
     return
-      XStream.of(TEXT_PLAIN, APPLICATION_OCTET_STREAM)
+      XStream.of(TEXT_PLAIN, APPLICATION_OCTET_STREAM, MESSAGE_RFC822)
       .concat(Arrays.stream(HashAlgorithm.values()).map(HashAlgorithm::getDataType))
       .collect(toISet())
     ;
@@ -32,12 +33,14 @@ public final class DefaultDataTypeProvider implements DataTypeProvider{
   @Override
   public Opt<FileExtension> preferredFileExtension(final DataType dataType) {
     if(dataType.baseType().equals(TEXT_PLAIN)) return Opt.of(TXT);
+    else if(dataType.baseType().equals(MESSAGE_RFC822)) return Opt.of(EML);
     else return Opt.empty();
   }
 
   @Override
   public ISortedSet<FileExtension> fileExtensions(final DataType dataType) {
     if(dataType.baseType().equals(TEXT_PLAIN)) return sortedSetOf(TXT);
+    else if(dataType.baseType().equals(MESSAGE_RFC822)) return sortedSetOf(EML);
     else return emptySortedSet();
   }
 
