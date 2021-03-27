@@ -1,7 +1,8 @@
 package com.github.gv2011.util.json;
 
-import java.math.BigDecimal;
 import java.util.stream.Stream;
+
+import com.github.gv2011.util.num.Decimal;
 
 public interface JsonNode extends Comparable<JsonNode>{
 
@@ -21,12 +22,17 @@ public interface JsonNode extends Comparable<JsonNode>{
 
   String asString();
 
-  BigDecimal asNumber();
+  Decimal asNumber();
 
   boolean asBoolean();
 
   JsonNull asNull();
 
   default boolean isNull() {return false;}
+  
+  int compareWithOtherOfSameJsonNodeType(JsonNode o);
+
+  String rawToString();
+
 
 }

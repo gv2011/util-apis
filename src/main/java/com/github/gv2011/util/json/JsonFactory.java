@@ -8,6 +8,8 @@ import java.util.stream.Collector;
 
 import com.github.gv2011.util.bytes.Bytes;
 import com.github.gv2011.util.icol.IList;
+import com.github.gv2011.util.num.Decimal;
+import com.github.gv2011.util.num.NumUtils;
 import com.github.gv2011.util.serviceloader.Service;
 
 @Service(defaultImplementation="com.github.gv2011.util.json.imp/com.github.gv2011.util.json.imp.JsonFactoryImp")
@@ -37,14 +39,20 @@ public interface JsonFactory {
 
   JsonString primitive(Bytes b);
 
-  JsonNumber primitive(int number);
+  JsonNumber primitive(Decimal number);
 
-  JsonNumber primitive(long number);
+  default JsonNumber primitive(int i){
+    return primitive(NumUtils.from(i));
+  }
 
-  JsonNumber primitive(BigDecimal number);
+  default JsonNumber primitive(long i){
+    return primitive(NumUtils.from(i));
+  }
+
+  default JsonNumber primitive(BigDecimal d){
+    return primitive(NumUtils.from(d));
+  }
 
   JsonBoolean primitive(boolean b);
-
-  JsonBoolean primitive(Boolean b);
 
 }

@@ -85,14 +85,16 @@ public final class StreamUtils {
   }
 
   public static long count(final InputStream s){
-    final byte[] buffer = new byte[1024];
-    long count = 0;
-    int read = call(()->s.read(buffer));
-    while(read!=-1){
-      count += read;
-      read = call(()->s.read(buffer));
-    }
-    return count;
+    return call(()->{
+      long count = s.skip(Long.MAX_VALUE);
+      int eof = s.read();
+      while(eof!=-1){
+        count++;
+        count += s.skip(Long.MAX_VALUE);
+        eof = s.read();
+      }
+      return count;
+    });
   }
 
   public static long copy(final ThrowingSupplier<InputStream> in, final OutputStream out) {

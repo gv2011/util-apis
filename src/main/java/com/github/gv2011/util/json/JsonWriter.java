@@ -1,6 +1,7 @@
 package com.github.gv2011.util.json;
 
-import java.math.BigDecimal;
+import com.github.gv2011.util.num.Decimal;
+import com.github.gv2011.util.num.NumUtils;
 
 public interface JsonWriter {
 
@@ -14,14 +15,14 @@ public interface JsonWriter {
 
     void writeBoolean(boolean value);
 
-    void writeNumber(BigDecimal value);
+    void writeDecimal(Decimal value);
 
     default void writeInt(final int value) {
-        writeNumber(BigDecimal.valueOf(value));
+        writeDecimal(NumUtils.from(value));
     }
 
     default void writeLong(final long value) {
-        writeNumber(BigDecimal.valueOf(value));
+        writeDecimal(NumUtils.from(value));
     }
 
     void beginObject();

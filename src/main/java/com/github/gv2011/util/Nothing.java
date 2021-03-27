@@ -1,34 +1,24 @@
 package com.github.gv2011.util;
 
-import static com.github.gv2011.util.Verify.verifyEqual;
+import com.github.gv2011.util.icol.IEmpty;
 
-import java.util.Locale;
-
-/**
- * Replacement for void/Void in some situations (avoids null). Example: allows
- * to treat consumer and suppliers formally as functions.
- */
-public final class Nothing implements Parsable {
+@Deprecated//Use com.github.gv2011.util.icol.Nothing
+public class Nothing extends IEmpty<Object> implements Parsable{
   
-  private static final String STRING_VALUE = "NOTHING".intern();
-
+  @Deprecated//Use com.github.gv2011.util.icol.Nothing
   public static final Nothing INSTANCE = new Nothing();
 
+  @Deprecated//Use com.github.gv2011.util.icol.Nothing
   public static Nothing parse(final CharSequence cs) {
-    verifyEqual(cs.toString().toUpperCase(Locale.ROOT), STRING_VALUE);
+    return com.github.gv2011.util.icol.Nothing.parse(cs);
+  }
+
+  @Deprecated//Use com.github.gv2011.util.icol.Nothing
+  protected Nothing() {
+  }
+
+  public static Nothing nothing() {
     return INSTANCE;
-  }
-
-  private Nothing() {
-  }
-
-  public static final Nothing nothing() {
-    return INSTANCE;
-  }
-
-  @Override
-  public String toString() {
-    return STRING_VALUE;
   }
 
 }

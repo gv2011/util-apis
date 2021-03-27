@@ -1,11 +1,11 @@
 package com.github.gv2011.util.bytes;
 
 import static com.github.gv2011.util.CollectionUtils.pair;
-import static com.github.gv2011.util.NumUtils.isOdd;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
+import static com.github.gv2011.util.num.NumUtils.isOdd;
 import static java.lang.Math.min;
 import static java.nio.charset.StandardCharsets.UTF_8;
 

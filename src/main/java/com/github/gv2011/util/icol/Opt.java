@@ -1,7 +1,8 @@
 package com.github.gv2011.util.icol;
 
-import static com.github.gv2011.util.Nothing.nothing;
+
 import static com.github.gv2011.util.ex.Exceptions.format;
+import static com.github.gv2011.util.icol.Nothing.nothing;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -15,7 +16,6 @@ import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
 
 import com.github.gv2011.util.Constant;
-import com.github.gv2011.util.Nothing;
 import com.github.gv2011.util.StreamAccess;
 import com.github.gv2011.util.ann.Nullable;
 

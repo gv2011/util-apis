@@ -5,7 +5,8 @@ import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
 import java.util.function.Function;
 
-import com.github.gv2011.util.Nothing;
+import com.github.gv2011.util.icol.Nothing;
+
 
 @FunctionalInterface
 public interface ThrowingRunnable extends ArgumentIgnoringThrowingFunction<Object,Nothing>{
