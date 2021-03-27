@@ -1,7 +1,7 @@
 package com.github.gv2011.util;
 
-import static com.github.gv2011.util.Nothing.nothing;
 import static com.github.gv2011.util.ex.Exceptions.call;
+import static com.github.gv2011.util.icol.Nothing.nothing;
 
 import java.util.concurrent.Callable;
 

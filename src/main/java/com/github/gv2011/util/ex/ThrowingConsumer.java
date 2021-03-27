@@ -6,7 +6,8 @@ import java.io.UncheckedIOException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import com.github.gv2011.util.Nothing;
+import com.github.gv2011.util.icol.Nothing;
+
 
 @FunctionalInterface
 public interface ThrowingConsumer<T> extends Throwing<T,Nothing>{

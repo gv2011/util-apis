@@ -1,6 +1,6 @@
 package com.github.gv2011.util.sec;
 
-import static com.github.gv2011.util.NumUtils.withLeadingZeros;
+import static com.github.gv2011.util.num.NumUtils.withLeadingZeros;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.Verify.verifyEqual;
 import static com.github.gv2011.util.ex.Exceptions.call;

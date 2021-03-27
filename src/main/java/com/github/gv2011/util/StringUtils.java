@@ -137,9 +137,15 @@ public final class StringUtils {
   public static String multiply(final CharSequence str, final int factor) {
     if (factor < 0) throw new IllegalArgumentException();
     final StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < factor; i++)
-      sb.append(str);
+    for (int i = 0; i < factor; i++) sb.append(str);
     return sb.toString();
+  }
+
+  public static String multiply(final char c, final int factor) {
+    if (factor < 0) throw new IllegalArgumentException();
+    final char[] chars = new char[factor];
+    Arrays.fill(chars, c);
+    return new String(chars);
   }
 
   public static String alignRight(final Object str, final int size) {
