@@ -1,6 +1,10 @@
 package com.github.gv2011.util.json;
 
+import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
+
 import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -17,7 +21,18 @@ public interface JsonFactory {
 
   JsonNode deserialize(String json);
 
+  default String serialize(JsonNode json){
+    return callWithCloseable(StringWriter::new, sw->{
+      final JsonWriter jsonWriter = jsonWriter(sw);
+      json.write(jsonWriter);
+      jsonWriter.flush();
+      return sw.toString();
+    });
+  }
+
   JsonReader jsonReader(Reader in);
+
+  JsonWriter jsonWriter(Writer writer);
 
   JsonList asJsonList(IList<?> list, Function<Object,JsonNode> converter);
 

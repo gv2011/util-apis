@@ -1,6 +1,7 @@
 package com.github.gv2011.util.icol;
 
 
+import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.icol.Nothing.nothing;
 
@@ -9,7 +10,6 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -18,6 +18,7 @@ import java.util.function.ToIntFunction;
 import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.StreamAccess;
 import com.github.gv2011.util.ann.Nullable;
+import com.github.gv2011.util.ex.ThrowingConsumer;
 
 public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
 
@@ -48,8 +49,8 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
 
   <U> Opt<U> map(final Function<? super E, ? extends U> mapper);
 
-  default Opt<Nothing> ifPresent(final Consumer<? super E> consumer){
-    return map(e->{consumer.accept(e);return Nothing.INSTANCE;});
+  default Opt<Nothing> ifPresent(final ThrowingConsumer<? super E> consumer){
+    return map(e->{call(()->consumer.accept(e));return Nothing.INSTANCE;});
   }
 
   <U> Opt<U> flatMap(final Function<? super E, ? extends Opt<? extends U>> mapper);

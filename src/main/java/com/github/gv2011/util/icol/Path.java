@@ -9,5 +9,5 @@ public interface Path extends GenericPath<String,Path>{
     default String urlEncoded(){
       return UrlEncoding.encodePath(this);
     }
-
+    
 }
