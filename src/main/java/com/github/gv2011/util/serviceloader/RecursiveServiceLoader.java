@@ -1,31 +1,5 @@
 package com.github.gv2011.util.serviceloader;
 
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2018 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.format;
@@ -55,6 +29,7 @@ import com.github.gv2011.util.AutoCloseableNt;
 import com.github.gv2011.util.CachedConstant;
 import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.Constants;
+import com.github.gv2011.util.ann.GuardedBy;
 import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.icol.ICollectionFactorySupplier;
 import com.github.gv2011.util.icol.IEmpty;
@@ -121,7 +96,7 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
     return Constants.cachedConstant(()->service(serviceClass));
   }
 
-  public static final <S> Constant<S> lazyService(final Class<S> serviceClass, Supplier<S> fallback) {
+  public static final <S> Constant<S> lazyService(final Class<S> serviceClass, final Supplier<S> fallback) {
     return Constants.cachedConstant(()->{
       final Opt<S> tryGetService = tryGetService(serviceClass);
       return tryGetService.orElseGet(fallback);
@@ -151,9 +126,12 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
   private final Map<Class<?>,Set<?>> services = new HashMap<>();
   private final Set<Class<?>> loading = new HashSet<>();
   private final List<AutoCloseable> closeableServices = new ArrayList<>();
-  private boolean closing = false;
-  private @Nullable Logger logger = null;
   private final @Nullable LogAdapter logAdapter;
+
+  @GuardedBy("lock")
+  private boolean closing = false;
+
+  private volatile @Nullable Logger logger = null;
 
   private RecursiveServiceLoader() throws Exception {
     logAdapter = loadBasicService(LogAdapter.class, false);

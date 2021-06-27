@@ -19,6 +19,9 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -27,18 +30,17 @@ import java.util.stream.IntStream;
 
 import com.github.gv2011.util.FileUtils;
 import com.github.gv2011.util.Pair;
+import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.ex.ThrowingSupplier;
-import com.github.gv2011.util.icol.ICollections;
-import com.github.gv2011.util.icol.IMap;
 import com.github.gv2011.util.icol.Opt;
 
 public class ByteUtils {
 
   private ByteUtils(){staticClass();}
-  
+
   private static final String HEX_CHARS = "0123456789ABCDEF";
-  
-  private static final IMap<DataType,Function<Bytes,TypedBytes>> TYPED_CONSTRUCTORS = createTypedConstructors();
+
+  private static final Map<DataType,Function<Bytes,TypedBytes>> TYPED_CONSTRUCTORS = createTypedConstructors();
 
   public static Bytes newBytes(final byte... bytes){
     return newBytes(bytes, 0, bytes.length);
@@ -189,7 +191,7 @@ public class ByteUtils {
     return new FileBytes(file);
   }
 
-  public static Bytes read(URL url) {
+  public static Bytes read(final URL url) {
     return copyFromStream(url::openStream);
   }
 
@@ -235,32 +237,29 @@ public class ByteUtils {
     return new JoiningBytesCollector();
   }
 
-  public static char firstHex(byte b) {
+  public static char firstHex(final byte b) {
     return HEX_CHARS.charAt((b>>4) & 0xF);
   }
 
-  public static char secondHex(byte b) {
+  public static char secondHex(final byte b) {
     return HEX_CHARS.charAt(b & 0xF);
   }
 
-  public static Bytes parseBase64(String base64) {
+  public static Bytes parseBase64(final String base64) {
     return ArrayBytes.create(Base64.getDecoder().decode(base64));
   }
-  
+
   static final TypedBytes createTyped(final Bytes content, final DataType dataType){
-    return TYPED_CONSTRUCTORS.tryGet(dataType.baseType())
-      .map(c->c.apply(content))
-      .orElseGet(()->new DefaultTypedBytes(content, dataType))
-    ;
+    final @Nullable Function<Bytes, TypedBytes> constructor = TYPED_CONSTRUCTORS.get(dataType.baseType());
+    return constructor == null ? new DefaultTypedBytes(content, dataType) : constructor.apply(content);
   }
 
-  private static final IMap<DataType, Function<Bytes, TypedBytes>> createTypedConstructors() {
-    return ICollections.<DataType, Function<Bytes, TypedBytes>>mapBuilder()
-      .put(Hash256.ALGORITHM.getDataType(), Hash256Imp::new)
-      .put(DataTypes.TEXT_PLAIN, PlainTextImp::new)
-      .put(DataTypes.MESSAGE_RFC822, EmailImp::new)
-      .build()
-    ;
+  private static final Map<DataType, Function<Bytes, TypedBytes>> createTypedConstructors() {
+    final Map<DataType, Function<Bytes, TypedBytes>> map = new HashMap<>();
+    map.put(Hash256.ALGORITHM.getDataType(), Hash256Imp::new);
+    map.put(DataTypes.TEXT_PLAIN, PlainTextImp::new);
+    map.put(DataTypes.MESSAGE_RFC822, EmailImp::new);
+    return Collections.unmodifiableMap(map);
   }
 
 

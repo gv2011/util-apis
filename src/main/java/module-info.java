@@ -40,4 +40,6 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.tstr;
   exports com.github.gv2011.util.uc;
   exports com.github.gv2011.util.xml;
+
+  exports com.github.gv2011.util.internal to com.github.gv2011.util.beans.imp;
 }

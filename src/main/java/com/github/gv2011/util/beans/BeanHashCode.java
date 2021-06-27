@@ -1,17 +1,18 @@
 package com.github.gv2011.util.beans;
 
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
-import static com.github.gv2011.util.icol.ICollections.toIMap;
-import static com.github.gv2011.util.icol.ICollections.toISet;
+import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
+import java.util.stream.Collectors;
 
 import com.github.gv2011.util.ReflectionUtils;
-import com.github.gv2011.util.icol.ISet;
 
 public final class BeanHashCode {
 
@@ -30,7 +31,7 @@ public final class BeanHashCode {
     return createHashCodeFunctionNamed(
       beanInterface,
       ( attributes.stream()
-        .collect(toIMap(
+        .collect(Collectors.toMap(
           a->ReflectionUtils.methodName(beanInterface, a),
           a->a
         ))
@@ -42,15 +43,15 @@ public final class BeanHashCode {
     final Class<B> beanClass, final Map<String, Function<B,?>> attributes
   ){
     final int base = beanClass.hashCode() * 31;
-    final ISet<ToIntFunction<B>> attributeFunctions =
+    final List<ToIntFunction<B>> attributeFunctions = Collections.unmodifiableList(
       attributes.entrySet().stream()
       .map(a->{
         final int attributeNameHash = a.getKey().hashCode();
-        final Function<B,?> attributeValeFunction = a.getValue();
-        return (ToIntFunction<B>) b->attributeNameHash ^ attributeValeFunction.apply(b).hashCode();
+        final Function<B,?> attributeValueFunction = a.getValue();
+        return (ToIntFunction<B>) b->attributeNameHash ^ attributeValueFunction.apply(b).hashCode();
       })
-      .collect(toISet())
-    ;
+      .collect(toList())
+    );
     return b->base + attributeFunctions.parallelStream().mapToInt(af->af.applyAsInt(b)).sum();
   }
 

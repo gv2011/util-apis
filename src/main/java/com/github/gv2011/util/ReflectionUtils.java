@@ -69,14 +69,19 @@ public final class ReflectionUtils {
   public static final Method WAIT_LONG = call(()->Object.class.getMethod("wait", long.class));
   public static final Method WAIT_LONG_INT = call(()->Object.class.getMethod("wait", long.class, int.class));
 
-  public static final ISet<Method> OBJECT_METHODS = setOf(
+  private static final Constant<ISet<Method>> OBJECT_METHODS = Constants.cachedConstant(()->setOf(
     EQUALS, GET_CLASS, HASH_CODE, NOTIFY, NOTIFY_ALL, TO_STRING, WAIT, WAIT_LONG,WAIT_LONG_INT
-  );
+  ));
 
-  public static final ISortedSet<String> OBJECT_PROPERTY_METHOD_NAMES = OBJECT_METHODS.stream()
+  private static final Constant<ISortedSet<String>> OBJECT_PROPERTY_METHOD_NAMES = Constants.cachedConstant(()->
+      OBJECT_METHODS.get().stream()
       .filter(m->m.getParameterCount()==0)
       .map(Method::getName).collect(toISortedSet())
-    ;
+  );
+
+  public static ISortedSet<String> objectPropertyNames(){
+    return OBJECT_PROPERTY_METHOD_NAMES.get();
+  }
 
   public static <T> Method method(final Class<T> intf, final Function<T,?> methodFunction){
     return methodLookup(intf).method(notNull(methodFunction));

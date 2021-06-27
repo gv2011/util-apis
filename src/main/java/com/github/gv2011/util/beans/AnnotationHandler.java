@@ -1,10 +1,12 @@
 package com.github.gv2011.util.beans;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import com.github.gv2011.util.icol.Opt;
 import com.github.gv2011.util.tstr.TypedString;
 import com.github.gv2011.util.icol.ISet;
+import com.github.gv2011.util.beans.Constructor.Variant;
 
 public interface AnnotationHandler {
 
@@ -13,6 +15,8 @@ public interface AnnotationHandler {
   Opt<Class<? extends TypeNameStrategy>> typeNameStrategy(Class<?> clazz);
 
   boolean annotatedAsBean(Class<?> clazz);
+
+  boolean annotatedAsConstructor(Constructor<?> constructor);
 
   boolean declaredAsAbstract(Class<?> clazz);
 
@@ -35,5 +39,11 @@ public interface AnnotationHandler {
   Opt<Class<? extends Validator<?>>> getValidatorClass(Class<?> clazz);
 
   <S extends TypedString<S>> Opt<String> getDefaultValue(Class<S> clazz);
+
+  boolean delegateConstructor(Constructor<?> constr);
+
+  boolean propertiesConstructor(Constructor<?> constr);
+
+  Variant getType(Constructor<?> constr);
 
 }

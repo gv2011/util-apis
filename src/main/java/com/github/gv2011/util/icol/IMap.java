@@ -40,6 +40,10 @@ import com.github.gv2011.util.NullSafeMap;
 
 public interface IMap<K,V> extends NullSafeMap<K,V>{
 
+  public static final String PREFIX = "{";
+  public static final String ENTRY_SEPARATOR = ", ";
+  public static final String SUFFIX = "}";
+
   public static interface Builder<K,V> extends MapBuilder<IMap<K,V>,K,V,Builder<K,V>>{}
 
   @SuppressWarnings("unchecked")

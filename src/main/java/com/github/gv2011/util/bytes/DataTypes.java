@@ -1,9 +1,9 @@
 package com.github.gv2011.util.bytes;
 
 import static com.github.gv2011.util.bytes.DataType.CHARSET_PARAMETER_NAME;
-import static com.github.gv2011.util.bytes.DataType.parse;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.icol.ICollections.toISet;
+import static com.github.gv2011.util.internal.DataTypeImp.parse;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.github.gv2011.util.icol.ISet;
@@ -21,9 +21,9 @@ public final class DataTypes {
   public static final String PLAIN = "plain";
   public static final DataType TEXT_PLAIN = parse(TEXT+"/"+PLAIN);
   public static final DataType TEXT_PLAIN_UTF_8 = parse(TEXT_PLAIN+";"+CHARSET_PARAMETER_NAME+"="+UTF_8.name());
-  
+
   public static final DataType XHTML = parse(APPLICATION+"/xhtml+xml;"+CHARSET_PARAMETER_NAME+"="+UTF_8.name());
-  
+
   public static final String MESSAGE = "message";
   public static final String RFC822 = "rfc822";
   public static final String MESSAGE_RFC822_STR = MESSAGE+"/"+RFC822;

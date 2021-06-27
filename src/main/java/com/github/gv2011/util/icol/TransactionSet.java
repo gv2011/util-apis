@@ -117,7 +117,6 @@ public boolean addAll(final ICollection<? extends T> elements, final Consumer<IS
     }
   }
 
-  @SuppressWarnings("unused")
   private Supplier<Boolean> containsNone(final Set<T> set, final Collection<? extends T> elements) {
     return new Supplier<Boolean>(){
       @Override

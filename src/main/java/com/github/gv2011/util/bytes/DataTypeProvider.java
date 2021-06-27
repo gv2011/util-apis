@@ -3,6 +3,7 @@ package com.github.gv2011.util.bytes;
 import com.github.gv2011.util.icol.ISet;
 import com.github.gv2011.util.icol.ISortedSet;
 import com.github.gv2011.util.icol.Opt;
+import com.github.gv2011.util.internal.DataTypeImp;
 
 public interface DataTypeProvider {
 

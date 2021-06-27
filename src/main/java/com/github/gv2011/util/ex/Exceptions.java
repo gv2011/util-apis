@@ -108,6 +108,13 @@ public final class Exceptions {
     return throwing.asFunction().apply(null);
   }
 
+  public static final ThrowingSupplier<Nothing> supplier(final ThrowingRunnable runnable) {
+    return ()->{
+      runnable.run();
+      return nothing();
+    };
+  }
+
   public static Nothing tryAll(final ThrowingRunnable... operations){
     return tryAll(Arrays.asList(operations));
   }
@@ -115,7 +122,7 @@ public final class Exceptions {
   /**
    * Tries to do all the operations even if some throw exceptions.
    * All but the last exception will be logged, but otherwise ignored.
-   * @return 
+   * @return
    */
   public static Nothing tryAll(
     final List<ThrowingRunnable> operations
@@ -261,11 +268,11 @@ public final class Exceptions {
     return logger;
   }
 
-  public static Nothing closeAll(AutoCloseable... closeables){
+  public static Nothing closeAll(final AutoCloseable... closeables){
     return closeAll(asList(closeables));
   }
 
-  public static Nothing closeAll(IList<? extends AutoCloseable> closeables){
+  public static Nothing closeAll(final IList<? extends AutoCloseable> closeables){
     return tryAll(closeables.stream().map(c->(ThrowingRunnable)(c::close)).collect(toIList()));
   }
 }

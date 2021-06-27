@@ -10,7 +10,7 @@ import java.util.Locale;
  */
 @SuppressWarnings("deprecation")
 public class Nothing extends com.github.gv2011.util.Nothing{
-  
+
   private static final String STRING_VALUE = "NOTHING".intern();
 
   public static final Nothing INSTANCE = new Nothing();

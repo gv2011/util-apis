@@ -7,6 +7,7 @@ import java.security.MessageDigest;
 import com.github.gv2011.util.bytes.DataType;
 import com.github.gv2011.util.bytes.DataTypes;
 import com.github.gv2011.util.icol.Opt;
+import com.github.gv2011.util.internal.DataTypeImp;
 
 /**
  * See <a
@@ -30,13 +31,11 @@ public enum HashAlgorithm {
   SHA3_512("SHA3-512");
 
   private final String algorithmName;
-  private final Constant<DataType> dataType;
+  private final DataType dataType;
 
   private HashAlgorithm(final String algorithmName){
     this.algorithmName = algorithmName;
-    dataType = Constants.cachedConstant(()->
-      DataType.parse(DataTypes.APPLICATION+"/x-"+StringUtils.toLowerCase(algorithmName.replace('/','-')))
-    );
+    dataType = DataTypeImp.parse(DataTypes.APPLICATION+"/x-"+StringUtils.toLowerCase(algorithmName.replace('/','-')));
   }
 
 
@@ -45,7 +44,7 @@ public enum HashAlgorithm {
   }
 
   public DataType getDataType() {
-    return dataType.get();
+    return dataType;
   }
 
   @Override
@@ -59,7 +58,7 @@ public enum HashAlgorithm {
 
   public static Opt<HashAlgorithm> forDataType(final DataType dataType){
     return XStream.ofArray(HashAlgorithm.values())
-      .filter(n->n.dataType.get().equals(dataType))
+      .filter(n->n.dataType.equals(dataType))
       .tryFindAny()
     ;
   }
