@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import com.github.gv2011.util.FileUtils;
 
 
-final class FileBackedBytesImp extends FileBytes{
+final class FileBackedBytesImp extends CachedFileBytes{
 
   private static final Logger LOG = getLogger(FileBackedBytesImp.class);
   private final Hash256 hash;

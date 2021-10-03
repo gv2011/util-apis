@@ -122,12 +122,12 @@ public final class StreamUtils {
   public static final OutputStream countingStream(final OutputStream out, final IntConsumer counter){
     return new FilterOutputStream(out){
       @Override
-      public void write(int b) throws IOException {
+      public void write(final int b) throws IOException {
         out.write(b);
         counter.accept(1);
       }
       @Override
-      public void write(byte[] b, int off, int len) throws IOException {
+      public void write(final byte[] b, final int off, final int len) throws IOException {
         out.write(b, off, len);
         counter.accept(len);
       }

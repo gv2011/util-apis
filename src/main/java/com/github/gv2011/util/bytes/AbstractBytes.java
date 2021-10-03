@@ -1,6 +1,7 @@
 package com.github.gv2011.util.bytes;
 
 import static com.github.gv2011.util.CollectionUtils.pair;
+import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.format;
@@ -15,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -36,13 +38,14 @@ import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.Constants;
 import com.github.gv2011.util.Pair;
 import com.github.gv2011.util.ann.Immutable;
+import com.github.gv2011.util.num.NumUtils;
 import com.github.gv2011.util.uc.UChars;
 import com.github.gv2011.util.uc.UStr;
 
 
 @Immutable
 public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
-  
+
   private static final Logger LOG = getLogger(AbstractBytes.class);
 
   private final Constant<Integer> hashCodeCache = Constants.cachedConstant(super::hashCode);
@@ -73,7 +76,7 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
   }
 
   @Override
-  public final int size() {
+  public int size() {
     final long size = longSize();
     if(size>Integer.MAX_VALUE) throw new TooBigException();
     return (int)size;
@@ -142,20 +145,20 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
   }
 
   @Override
-  public final void write(final Path file, boolean onlyOwner) {
+  public final void write(final Path file, final boolean onlyOwner) {
     checkNotClosed();
     if(onlyOwner){
       try {
         Files.createFile(file);
-      } catch (FileAlreadyExistsException e) {        
-      } catch (IOException e) {
+      } catch (final FileAlreadyExistsException e) {
+      } catch (final IOException e) {
         throw wrap(e);
       }
       try {
         Files.setPosixFilePermissions(file, EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
-      } catch (UnsupportedOperationException e) {
+      } catch (final UnsupportedOperationException e) {
         LOG.warn(format("Cannot set only user can read permissions on file {}.", file), e);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw wrap(e);
       }
     }
@@ -469,6 +472,26 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
   @Override
   public TypedBytes typed(final DataType dataType) {
     return ByteUtils.createTyped(this, dataType);
+  }
+
+  @Override
+  public ByteBuffer toBuffer(final long offset, final int size) {
+    return ByteBuffer.wrap(subList(offset, offset+size).toByteArray()).asReadOnlyBuffer();
+  }
+
+  @Override
+  public ByteBuffer toBuffer(final long offset) {
+    return toBuffer(offset, NumUtils.toInt(Math.min(longSize()-offset, 4096)));
+  }
+
+  @Override
+  public int write(final ByteBuffer buffer, final long offset){
+    verify(offset>=0 && offset<=longSize());
+    final int count = NumUtils.toInt(Math.min(longSize()-offset, buffer.remaining()));
+    for(int i=0; i<count; i++){
+      buffer.put(get(offset+i));
+    }
+    return count;
   }
 
 }

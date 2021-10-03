@@ -6,3 +6,44 @@
 
 Factored out "util" (core) artifact from https://github.com/gv2011/util
 to allow independent API versioning.
+
+
+## Dependencies
+
+    <dependency>
+      <groupId>com.github.gv2011</groupId>
+      <artifactId>util-apis</artifactId>
+      <version>${util-apis.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.github.gv2011</groupId>
+      <artifactId>gcol</artifactId>
+      <version>${util.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.gv2011</groupId>
+      <artifactId>util-beans</artifactId>
+      <version>${util.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.gv2011</groupId>
+      <artifactId>jsong</artifactId>
+      <version>${util.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.gv2011</groupId>
+      <artifactId>util-logback</artifactId>
+      <version>${util.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.github.gv2011</groupId>
+      <artifactId>testutil</artifactId>
+      <version>${util.version}</version>
+      <scope>test</scope>
+    </dependency>

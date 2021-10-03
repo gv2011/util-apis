@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Spliterator;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -199,11 +200,11 @@ public final class ICollections {
   public static <E extends Comparable<? super E>> ISortedSet<E> asSortedSet(final E[] elements){
     return iCollections().asSortedSet(elements);
   }
-  
-  
+
+
   //Legacy:
-  
-  public static <E> IList<E> asList(Enumeration<? extends E> elements){
+
+  public static <E> IList<E> asList(final Enumeration<? extends E> elements){
     return iCollections().asList(elements);
   }
 
@@ -349,5 +350,22 @@ public final class ICollections {
   ) {
     return first.parallelStream().filter(second::contains).collect(toISortedSet());
   }
+
+  public static <K extends Comparable<? super K>,V> ISortedMap<K,V> priorityMerge(
+    final IList<Stream<? extends V>> sources,
+    final Function<? super V,? extends K> key
+  ){
+    return iCollections().priorityMerge(sources, key, (v0,v1)->v0);
+  }
+
+  public static <K extends Comparable<? super K>,V> ISortedMap<K,V> priorityMerge(
+    final IList<Stream<? extends V>> sources,
+    final Function<? super V,? extends K> key,
+    final BinaryOperator<V> mergeFunction
+  ){
+    return iCollections().priorityMerge(sources, key, mergeFunction);
+  }
+
+
 
 }

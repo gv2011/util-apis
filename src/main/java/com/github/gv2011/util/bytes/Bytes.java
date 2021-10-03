@@ -2,6 +2,7 @@ package com.github.gv2011.util.bytes;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.List;
@@ -86,6 +87,9 @@ public interface Bytes extends List<Byte>, Comparable<Bytes>, OptCloseable{
 
   TypedBytes typed(DataType mimeType);
 
+  ByteBuffer toBuffer(long offset);
 
+  ByteBuffer toBuffer(long offset, int size);
 
+  int write(final ByteBuffer buffer, final long offset);
 }

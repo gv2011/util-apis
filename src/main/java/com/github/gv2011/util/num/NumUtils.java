@@ -15,35 +15,35 @@ public final class NumUtils {
   static final BigInteger MAX_LONG = BigInteger.valueOf(Long.MAX_VALUE);
 
   private NumUtils(){staticClass();}
-  
-  public static Decimal parse(String dec){
+
+  public static Decimal parse(final String dec){
     return from(new BigDecimal(dec));
   }
 
-  public static Decimal from(Number number){
+  public static Decimal from(final Number number){
     return from(BigDecimal.valueOf(number.doubleValue()));
   }
 
-  public static Decimal from(long l){
+  public static Decimal from(final long l){
     return Integer.MIN_VALUE <= l && l <= Integer.MAX_VALUE
       ? from((int)l)
       : from(BigDecimal.valueOf(l))
     ;
   }
 
-  public static Decimal from(BigInteger i){
+  public static Decimal from(final BigInteger i){
     return from(new BigDecimal(i));
   }
 
-  public static Decimal from(int i){
+  public static Decimal from(final int i){
     return IntDecimal.from(i);
   }
 
-  public static Decimal from(BigDecimal bigDecimal){
+  public static Decimal from(final BigDecimal bigDecimal){
     return fromCanonical(BigDecimalUtils.canonical(bigDecimal));
   }
 
-  static Decimal fromCanonical(BigDecimal canonical){
+  static Decimal fromCanonical(final BigDecimal canonical){
     assert BigDecimalUtils.isCanonical(canonical);
     return BigDecimalUtils.canonicalFitsInt(canonical)
       ? IntDecimal.from(canonical.intValueExact())
@@ -62,7 +62,7 @@ public final class NumUtils {
     if(i<0) sb.insert(0,'-');
     return sb.toString();
   }
-  
+
   public static boolean isInt(final BigInteger i) {
     return i.compareTo(MIN_INT)>=0 && i.compareTo(MAX_INT)<=0;
   }
@@ -73,6 +73,11 @@ public final class NumUtils {
 
   public static Decimal zero() {
     return IntDecimal.ZERO;
+  }
+
+  public static int toInt(final long l) {
+    verify(l>=Integer.MIN_VALUE && l<=Integer.MAX_VALUE);
+    return (int)l;
   }
 
 }

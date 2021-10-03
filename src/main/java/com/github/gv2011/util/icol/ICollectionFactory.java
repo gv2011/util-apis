@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Spliterator;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -97,7 +98,7 @@ public interface ICollectionFactory {
   default <E> IList<E> listOf(final E e0, final E e1, final E... more){
     return Stream.concat(Stream.of(e0,e1), Arrays.stream(more)).collect(listCollector());
   }
-  
+
   default Path pathOf(final String... elements){
     return pathFrom(asList(elements));
   }
@@ -197,20 +198,20 @@ public interface ICollectionFactory {
 
 
   //Legacy:
-  
-  default <E> IList<E> asList(Enumeration<? extends E> elements){
+
+  default <E> IList<E> asList(final Enumeration<? extends E> elements){
     final Builder<E> b = listBuilder();
     while(elements.hasMoreElements()) b.add(elements.nextElement());
     return b.build();
   }
-  
-  
+
+
   //Builders:
 
   <E> IList.Builder<E> listBuilder();
 
   Path.Builder pathBuilder();
-  
+
   <E extends Comparable<? super E>> IComparableList.Builder<E> comparableListBuilder();
 
   <E> ISet.Builder<E> setBuilder();
@@ -254,11 +255,11 @@ public interface ICollectionFactory {
 
   Collector<String, ?, Path> pathCollector();
 
-  
+
   //Other:
 
   Path emptyPath();
-  
+
   Path pathFrom(final Collection<String> collection);
 
   <E> XStream<E> xStream(Stream<E> s);
@@ -266,5 +267,12 @@ public interface ICollectionFactory {
   <E> XStream<E> pStream(Stream<E> s);
 
   <E> XStream<E> xStream(Spliterator<E> spliterator, boolean parallel);
+
+  <K extends Comparable<? super K>,V> ISortedMap<K,V> priorityMerge(
+    final IList<Stream<? extends V>> sources,
+    final Function<? super V,? extends K> key,
+    final BinaryOperator<V> mergeFunction
+  );
+
 
 }

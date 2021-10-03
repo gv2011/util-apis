@@ -188,7 +188,7 @@ public class ByteUtils {
   }
 
   public static Bytes read(final Path file) {
-    return new FileBytes(file);
+    return new CachedFileBytes(file);
   }
 
   public static Bytes read(final URL url) {
@@ -200,7 +200,7 @@ public class ByteUtils {
     if(dataType.charset().isEmpty() && dataType.primaryType().equals(DataTypes.TEXT)){
       dataType = dataType.withCharset(UTF_8);
     }
-    final FileBytes bytes = new FileBytes(file);
+    final CachedFileBytes bytes = new CachedFileBytes(file);
     return createTyped(bytes, dataType);
   }
 
