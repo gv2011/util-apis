@@ -15,7 +15,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.FileAlreadyExistsException;
@@ -240,6 +243,11 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
   }
 
   @Override
+  public final Reader reader() {
+	return new InputStreamReader(openStream(), UTF_8);
+  }
+
+  @Override
   public int toInt() {
     final int size = size();
     if(size>4) throw new IllegalStateException();
@@ -251,7 +259,24 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
     return result;
   }
 
+  @Override
+  public final long toLong() {
+    final int size = size();
+    if(size>8) throw new IllegalStateException();
+    final boolean negative = size==0?false:getByte(0)<0;
+    long result = negative?-1L:0L;
+    for(final byte b: this){
+      result = ((result<<8) & -0x100L) | (b & 0xFFL);
+    }
+    return result;
+  }
 
+
+
+  @Override
+  public BigInteger toBigInteger() {
+    return new BigInteger(1, toByteArray());
+  }
 
   @Override
   public Bytes toBase64() {

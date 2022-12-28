@@ -2,6 +2,8 @@ package com.github.gv2011.util.bytes;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
@@ -37,6 +39,8 @@ public interface Bytes extends List<Byte>, Comparable<Bytes>, OptCloseable{
 
   InputStream openStream();
 
+  Reader reader();
+
   @Override
   int size() throws TooBigException;
 
@@ -49,6 +53,8 @@ public interface Bytes extends List<Byte>, Comparable<Bytes>, OptCloseable{
 
   Bytes subList(final long fromIndex, final long toIndex);
 
+  BigInteger toBigInteger();
+
   Bytes toBase64();
 
   String toBase64String();
@@ -58,6 +64,8 @@ public interface Bytes extends List<Byte>, Comparable<Bytes>, OptCloseable{
   String toHexMultiline();
 
   String toHex();
+
+  long toLong();
 
   String toHexColon();
 

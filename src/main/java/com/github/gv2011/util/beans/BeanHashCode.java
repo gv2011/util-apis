@@ -42,7 +42,7 @@ public final class BeanHashCode {
   public static <B> ToIntFunction<B> createHashCodeFunctionNamed(
     final Class<B> beanClass, final Map<String, Function<B,?>> attributes
   ){
-    final int base = beanClass.hashCode() * 31;
+    final int base = classHashCode(beanClass) * 31;
     final List<ToIntFunction<B>> attributeFunctions = Collections.unmodifiableList(
       attributes.entrySet().stream()
       .map(a->{
@@ -53,6 +53,10 @@ public final class BeanHashCode {
       .collect(toList())
     );
     return b->base + attributeFunctions.parallelStream().mapToInt(af->af.applyAsInt(b)).sum();
+  }
+
+  public static int classHashCode(final Class<?> clazz) {
+    return clazz.getName().hashCode();
   }
 
 }

@@ -36,11 +36,16 @@ import java.util.Comparator;
 final class TypedStringInvocationHandler<S extends TypedString<S>> implements InvocationHandler{
 
     static final <S extends TypedString<S>> S create(final Class<S> clazz, final String value) {
-        return clazz.cast(Proxy.newProxyInstance(
+      return AbstractTypedString.getTypedStringParser(clazz)
+        .map(p->p.parse(value))
+        .orElseGet(()->
+          clazz.cast(Proxy.newProxyInstance(
             clazz.getClassLoader(),
             new Class<?>[] {clazz},
             new TypedStringInvocationHandler<>(clazz, value)
-        ));
+            ))
+          )
+        ;
     }
 
     private final Class<S> clazz;

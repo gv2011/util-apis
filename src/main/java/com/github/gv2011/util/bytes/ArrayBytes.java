@@ -7,6 +7,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -36,6 +37,11 @@ class ArrayBytes extends AbstractBytes{
     return new Hash256Imp(md);
   }
 
+
+  @Override
+  public BigInteger toBigInteger() {
+    return new BigInteger(1, bytes);
+  }
 
   @Override
   public byte[] toByteArray(){

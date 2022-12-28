@@ -3,10 +3,11 @@ package com.github.gv2011.util.beans;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
+import com.github.gv2011.util.beans.Constructor.Variant;
+import com.github.gv2011.util.icol.ISet;
 import com.github.gv2011.util.icol.Opt;
 import com.github.gv2011.util.tstr.TypedString;
-import com.github.gv2011.util.icol.ISet;
-import com.github.gv2011.util.beans.Constructor.Variant;
+import com.github.gv2011.util.tstr.TypedString.TypedStringParser;
 
 public interface AnnotationHandler {
 
@@ -45,5 +46,7 @@ public interface AnnotationHandler {
   boolean propertiesConstructor(Constructor<?> constr);
 
   Variant getType(Constructor<?> constr);
+
+  <T extends TypedString<T>> Opt<TypedStringParser<T>> getTypedStringParser(Class<T> typedStringClass);
 
 }

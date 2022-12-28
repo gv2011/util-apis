@@ -1,6 +1,11 @@
 package com.github.gv2011.util.tstr;
 
-public abstract class AbstractTypedString<T extends AbstractTypedString<T>>
+import static com.github.gv2011.util.ex.Exceptions.call;
+
+import com.github.gv2011.util.beans.ParserClass;
+import com.github.gv2011.util.icol.Opt;
+
+public abstract class AbstractTypedString<T extends TypedString<T>>
 implements TypedString<T>{
 
   @Override
@@ -35,5 +40,14 @@ implements TypedString<T>{
   public CharSequence subSequence(final int start, final int end) {
     return canonical().subSequence(start, end);
   }
+
+  @SuppressWarnings("unchecked")
+  public static final <T extends TypedString<T>> Opt<TypedStringParser<T>> getTypedStringParser(final Class<T> typedStringClass) {
+    return
+      Opt.ofNullable(typedStringClass.getAnnotation(ParserClass.class))
+      .map(pc->(TypedStringParser<T>)call(()->pc.value().getConstructor().newInstance(new Object[0])))
+    ;
+  }
+
 
 }

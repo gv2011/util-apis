@@ -1,42 +1,32 @@
 package com.github.gv2011.util.time;
 
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2018 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
 import static com.github.gv2011.util.Comparison.max;
 import static com.github.gv2011.util.Comparison.min;
 import static com.github.gv2011.util.Verify.verify;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Comparator;
 
+import com.github.gv2011.util.beans.NoDefaultValue;
+import com.github.gv2011.util.beans.ParserClass;
 import com.github.gv2011.util.icol.Opt;
 import com.github.gv2011.util.tstr.TypedString;
 
-
+@ParserClass(TimeSpan.TimeSpanParser.class)
+@NoDefaultValue
 public interface TimeSpan extends TypedString<TimeSpan>{
+
+  public static final Comparator<TimeSpan> COMPARATOR = Comparator
+    .comparing(TimeSpan::from).thenComparing(TimeSpan::until)
+  ;
+
+  public static final class TimeSpanParser implements TypedStringParser<TimeSpan>{
+    @Override
+    public final TimeSpan parse(final String s) {
+      return TimeSpanImp.parse(s);
+    }
+  }
 
   public static TimeSpan create(final Instant from, final Instant until){
     verify(!until.isBefore(from));
@@ -80,11 +70,7 @@ public interface TimeSpan extends TypedString<TimeSpan>{
 
   @Override
   default int compareWithOtherOfSameType(final TimeSpan o) {
-    int result = from().compareTo(o.from());
-    if(result==0){
-      result = until().compareTo(o.until());
-    }
-    return result;
+    return COMPARATOR.compare(this, o);
   }
 
 }

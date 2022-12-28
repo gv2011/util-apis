@@ -6,6 +6,8 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import com.github.gv2011.util.tstr.TypedString.TypedStringParser;
+
 public final class NumUtils {
 
   static final BigInteger MIN_INT = BigInteger.valueOf(Integer.MIN_VALUE);
@@ -78,6 +80,13 @@ public final class NumUtils {
   public static int toInt(final long l) {
     verify(l>=Integer.MIN_VALUE && l<=Integer.MAX_VALUE);
     return (int)l;
+  }
+
+  public static final class DecimalParser implements TypedStringParser<Decimal>{
+    @Override
+    public Decimal parse(final String s) {
+      return NumUtils.parse(s);
+    }
   }
 
 }

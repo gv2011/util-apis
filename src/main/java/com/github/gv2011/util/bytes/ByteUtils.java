@@ -30,6 +30,7 @@ import java.util.stream.IntStream;
 
 import com.github.gv2011.util.FileUtils;
 import com.github.gv2011.util.Pair;
+import com.github.gv2011.util.StreamUtils;
 import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.ex.ThrowingSupplier;
 import com.github.gv2011.util.icol.Opt;
@@ -193,6 +194,19 @@ public class ByteUtils {
 
   public static Bytes read(final URL url) {
     return copyFromStream(url::openStream);
+  }
+
+  public static Bytes read(final InputStream in, final int size) {
+    return ArrayBytes.create(StreamUtils.readBytes(in, size));
+  }
+
+  public static Bytes toBytes(long l) {
+    final byte[] buffer = new byte[8];
+    for(int i=7; i>=0; i--) {
+      buffer[i] = (byte)l;
+      l = l>>8;
+    }
+    return ArrayBytes.create(buffer);
   }
 
   public static TypedBytes readTyped(final Path file) {

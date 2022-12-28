@@ -3,7 +3,6 @@ package com.github.gv2011.util.main;
 import static com.github.gv2011.util.FileUtils.delete;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
-
 import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.icol.Nothing.nothing;
 import static java.nio.file.StandardOpenOption.CREATE;
@@ -29,7 +28,6 @@ import com.github.gv2011.util.AutoCloseableNt;
 import com.github.gv2011.util.BeanUtils;
 import com.github.gv2011.util.FileUtils;
 import com.github.gv2011.util.JmxUtils;
-
 import com.github.gv2011.util.ResourceUtils;
 import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.ex.Exceptions;
@@ -147,8 +145,9 @@ public abstract class MainUtils implements MainUtilsMBean, AutoCloseableNt{
         Runtime.getRuntime().addShutdownHook(new Thread(
           ()->{
             shutdownLatch.countDown();
-            final int exitCode = call(()->mainDone.take());
-            System.exit(exitCode);
+            //final int exitCode =
+            call(()->mainDone.take());
+            //System.exit(exitCode); TODO review, blocks when stopping via JMX (on Linux)
           },
           "shutdown"
         ));

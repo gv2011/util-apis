@@ -5,6 +5,8 @@ import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.icol.ICollections.listBuilder;
+import static com.github.gv2011.util.icol.ICollections.toIList;
+import static java.util.function.Predicate.not;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -13,6 +15,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import com.github.gv2011.util.icol.ICollections;
 import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.icol.IList.Builder;
 import com.github.gv2011.util.icol.Opt;
@@ -20,6 +23,8 @@ import com.github.gv2011.util.icol.Opt;
 public final class StringUtils {
 
   private StringUtils(){staticClass();}
+
+  public static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
   public static String removeWhitespace(final String s) {
     return s.replaceAll("\\s+", "");
@@ -149,6 +154,17 @@ public final class StringUtils {
     final Builder<String> listBuilder = listBuilder();
     addSplit(text, c, listBuilder);
     return listBuilder.build();
+  }
+
+  public static IList<String> split(final String text, final String separator) {
+    return ICollections.asList(text.split(Pattern.quote(separator)));
+  }
+
+  public static IList<String> words(final String text) {
+    return Arrays.stream(WHITESPACE.split(text))
+      .map(String::trim)
+      .filter(not(String::isEmpty))
+      .collect(toIList());
   }
 
   public static void addSplit(final String text, final char c, final Builder<String> listBuilder) {

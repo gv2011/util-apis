@@ -3,8 +3,14 @@ package com.github.gv2011.util.tstr;
 import java.util.Comparator;
 
 import com.github.gv2011.util.Equal;
+import com.github.gv2011.util.beans.BeanHashCode;
 
 public interface TypedString<T extends TypedString<T>> extends CharSequence, Comparable<TypedString<?>>{
+
+  @FunctionalInterface
+  public static interface TypedStringParser<T extends TypedString<T>>{
+    T parse(String s);
+  }
 
   public static <T extends TypedString<T>> T create(final Class<T> clazz, final String value) {
     return TypedStringInvocationHandler.create(clazz, value);
@@ -17,7 +23,7 @@ public interface TypedString<T extends TypedString<T>> extends CharSequence, Com
     else {
       result = s1.clazz().getName().compareTo(s2.clazz().getName());
       if(result==0) {
-        result = ((TypedString)s1).compareWithOtherOfSameType(((TypedString)s2));
+        result = ((TypedString)s1).compareWithOtherOfSameType((s2));
       }
     }
     return result;
@@ -28,7 +34,7 @@ public interface TypedString<T extends TypedString<T>> extends CharSequence, Com
     }
 
     public static int hashCode(final Class<? extends TypedString<?>> clazz, final String canonical) {
-      return clazz.hashCode() * 31 + canonical.hashCode();
+      return BeanHashCode.classHashCode(clazz) * 31 + canonical.hashCode();
     }
 
     public static boolean equal(final TypedString<?> s, final Object obj) {

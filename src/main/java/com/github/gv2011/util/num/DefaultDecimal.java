@@ -4,11 +4,11 @@ import java.math.BigDecimal;
 
 import com.github.gv2011.util.StringUtils;
 
-final class DefaultDecimal implements Decimal {
-  
+final class DefaultDecimal extends AbstractDecimal {
+
   private final BigDecimal dec;
 
-  DefaultDecimal(BigDecimal dec) {
+  DefaultDecimal(final BigDecimal dec) {
     this.dec = BigDecimalUtils.canonical(dec);
     assert !BigDecimalUtils.canonicalFitsInt(this.dec);
   }
@@ -39,13 +39,8 @@ final class DefaultDecimal implements Decimal {
   }
 
   @Override
-  public int compareWithOtherOfSameType(Decimal o) {
-    return dec.compareTo(o.toBigDecimal());
-  }
-
-  @Override
-  public int hashCode() {
-    return dec.hashCode();
+  int compareWithOtherAbstractDecimal(final AbstractDecimal o) {
+    return toBigDecimal().compareTo(o.toBigDecimal());
   }
 
   @Override
@@ -54,7 +49,7 @@ final class DefaultDecimal implements Decimal {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     return this==obj ? true : obj==null ? false : obj instanceof Decimal
       ? compareWithOtherOfSameType((Decimal)obj)==0
       : false
@@ -66,7 +61,7 @@ final class DefaultDecimal implements Decimal {
     return toEcmaString(dec);
   }
 
-  static String toEcmaString(BigDecimal bigDecimal) {
+  static String toEcmaString(final BigDecimal bigDecimal) {
     assert BigDecimalUtils.isCanonical(bigDecimal);
     final String result;
     final int signum = bigDecimal.signum();
@@ -85,20 +80,20 @@ final class DefaultDecimal implements Decimal {
         result = sign + mantissa.substring(0, n) + '.' + mantissa.substring(n);
       }
       else if( -6 < n  &&  n <= 0 ){
-        result = sign + "0." + StringUtils.multiply('0', -n) + mantissa; 
+        result = sign + "0." + StringUtils.multiply('0', -n) + mantissa;
       }
       else if(k==1){
-        result = sign + mantissa + expStr(n-1); 
+        result = sign + mantissa + expStr(n-1);
       }
       else{
-        result = sign + mantissa.charAt(0) + "." + mantissa.substring(1) + expStr(n-1); 
+        result = sign + mantissa.charAt(0) + "." + mantissa.substring(1) + expStr(n-1);
       }
     }
     assert new BigDecimal(result).compareTo(bigDecimal)==0;
     return result;
   }
-  
-  private static final String expStr(int e){
+
+  private static final String expStr(final int e){
     return 'e' + (e>=0?"+":"") + e;
   }
 
@@ -123,11 +118,11 @@ final class DefaultDecimal implements Decimal {
   }
 
   @Override
-  public Decimal plus(Decimal dec) {
+  public Decimal plus(final Decimal dec) {
     return sum(this, dec);
   }
 
-  static Decimal sum(Decimal d1, Decimal d2) {
+  static Decimal sum(final Decimal d1, final Decimal d2) {
     return NumUtils.from(d1.toBigDecimal().add(d2.toBigDecimal()));
   }
 
@@ -153,7 +148,7 @@ final class DefaultDecimal implements Decimal {
   public long longValue() {
     return dec.longValueExact();
   }
-  
+
   @Override
   public double doubleValue() {
     return dec.doubleValue();
