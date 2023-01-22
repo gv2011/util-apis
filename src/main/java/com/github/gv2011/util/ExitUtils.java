@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.gv2011.util.ex.Exceptions;
 import com.github.gv2011.util.ex.ThrowingRunnable;
+import com.github.gv2011.util.icol.ICollections;
 import com.github.gv2011.util.icol.ISet;
 import com.github.gv2011.util.icol.Nothing;
 
@@ -92,7 +93,7 @@ public final class ExitUtils {
       synchronized(lock){
         final ListIterator<Pair<Reference<Object>, ThrowingRunnable>> it = entries.listIterator(entries.size());
         while(it.hasPrevious()){
-          shutdownEs.submit(()->{it.previous().getValue().run(); return null;});
+          shutdownEs.submit(()->{it.previous().getValue().runThrowing(); return null;});
         }
       }
       LOG.info("Dropper terminated.");
@@ -105,7 +106,7 @@ public final class ExitUtils {
           while(it.hasNext()){
             final Pair<Reference<Object>, ThrowingRunnable> p = it.next();
             if(p.getKey().get()==null){
-              executorService.submit(()->{p.getValue().run(); return null;});
+              executorService.submit(()->{p.getValue().runThrowing(); return null;});
               it.remove();
             }
           }
@@ -141,7 +142,7 @@ public final class ExitUtils {
     }
 
     private void doParallel(final ThrowingRunnable task){
-      shutdownEs.submit(()->{task.run(); return null;});
+      shutdownEs.submit(()->{task.runThrowing(); return null;});
     }
 
     private void join(final Thread t){
@@ -167,7 +168,7 @@ public final class ExitUtils {
       result.setDaemon(true);
       result.setUncaughtExceptionHandler(this);
       synchronized(threads){
-        threads.put(result, Nothing.INSTANCE);
+        threads.put(result, ICollections.nothing());
       }
       return result;
     }

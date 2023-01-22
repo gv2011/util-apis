@@ -3,33 +3,6 @@ package com.github.gv2011.util.icol;
 import static com.github.gv2011.util.CollectionUtils.stream;
 
 import java.util.Arrays;
-
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2017 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map;
@@ -51,19 +24,18 @@ public interface ICollectionFactory {
 
   //Empty:
 
-  @SuppressWarnings("unchecked")
-  default <E> Opt<E> empty(){
-    return IEmpty.INSTANCE;
-  }
+  Nothing nothing();
 
   @SuppressWarnings("unchecked")
-  default <E> IList<E> emptyList(){
-    return IEmptyList.INSTANCE;
+  default <E> Empty<E> empty(){
+    return nothing();
   }
 
+  <E> IList<E> emptyList();
+
   @SuppressWarnings("unchecked")
-  default <E> Opt<E> emptySet(){
-    return IEmpty.INSTANCE;
+  default <E> Empty<E> emptySet(){
+    return nothing();
   }
 
   <E extends Comparable<? super E>> ISortedSet<E> emptySortedSet();
@@ -77,13 +49,11 @@ public interface ICollectionFactory {
 
   <E> IList<E> listOf(final E element);
 
-  default <E> Opt<E> single(final E element){
+  default <E> Single<E> single(final E element){
     return setOf(element);
   }
 
-  default <E> Opt<E> setOf(final E element){
-    return new Single<>(element);
-  }
+  <E> Single<E> setOf(final E element);
 
   <E extends Comparable<? super E>> ISortedSet<E> sortedSetOf(final E element);
 
@@ -128,8 +98,12 @@ public interface ICollectionFactory {
 
   //Optional:
 
+  default <E> Opt<E> ofNullable(final E nullable){
+    return nullable == null ? empty() : single(nullable);
+  }
+
   default <E> Opt<E> ofOptional(final Optional<? extends E> optional){
-    return optional.map(e->ICollections.single((E)e)).orElse(empty());
+    return optional.<Opt<E>>map(e->single(e)).orElseGet(()->emptySet());
   }
 
   default <E> IList<E> listFrom(final Optional<? extends E> optional){

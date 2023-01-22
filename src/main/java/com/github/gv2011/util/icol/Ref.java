@@ -10,7 +10,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public abstract class Ref<E> implements Opt<E>{
+import com.github.gv2011.util.ex.ThrowingSupplier;
+
+public abstract class Ref<E> implements Single<E>{
 
   @Override
   public final int size() {
@@ -42,10 +44,9 @@ public abstract class Ref<E> implements Opt<E>{
     return true;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public final Opt<E> filter(final Predicate<? super E> predicate) {
-    return predicate.test(get()) ? this : ICollections.EMPTY;
+    return predicate.test(get()) ? this : ICollections.empty();
   }
 
   @SuppressWarnings("unchecked")
@@ -65,13 +66,19 @@ public abstract class Ref<E> implements Opt<E>{
   }
 
   @Override
-  public final E orElseGet(final Supplier<? extends E> supplier) {
+  public final E orElseGet(final ThrowingSupplier<? extends E> supplier) {
     return get();
   }
 
   @Override
   public final <X extends Throwable> E orElseThrow(final Supplier<? extends X> exceptionSupplier) throws X {
     return get();
+  }
+
+  @Override
+  public ISet<E> addElement(final E other) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
   @Override

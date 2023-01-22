@@ -4,7 +4,7 @@ import static com.github.gv2011.util.FileUtils.delete;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.format;
-import static com.github.gv2011.util.icol.Nothing.nothing;
+import static com.github.gv2011.util.icol.ICollections.nothing;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static org.slf4j.LoggerFactory.getLogger;

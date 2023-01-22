@@ -16,8 +16,11 @@ import com.github.gv2011.util.icol.Opt;
 
 public class TimeUtils {
 
+  public static final double HOUR = toSeconds(Duration.ofHours(1));
+
   private static final Pattern HOURS = Pattern.compile("(-?\\d+)(:([0-5]\\d)(:(([0-5]\\d)([,\\.](\\d+))?))?)?");
-  private static final double NANOS_PER_SECOND = ChronoUnit.SECONDS.getDuration().toNanos();
+  private static final long NANOS_PER_SECOND = Duration.ofSeconds(1).toNanos();
+  private static final double NANO = 1d / NANOS_PER_SECOND;
 
   private static final Pattern DD_MM_YYYY = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
 
@@ -50,7 +53,7 @@ public class TimeUtils {
 
   public static double toSeconds(final Duration time) {
     double result = time.getSeconds();
-    result += ((double)time.getNano()) / NANOS_PER_SECOND;
+    result += (time.getNano()) * NANO;
     return result;
   }
 
@@ -71,32 +74,32 @@ public class TimeUtils {
     if(!m.matches()) throw new IllegalArgumentException();
     return LocalDate.parse(m.group(3)+"-"+m.group(2)+"-"+m.group(1));
   }
-  
-  public static final Poller poller(Duration interval, Opt<Duration> timeout){
+
+  public static final Poller poller(final Duration interval, final Opt<Duration> timeout){
     return Clock.get().poller(interval, timeout);
   }
 
-  public static final Instant earliest(Instant i1, Instant i2) {
+  public static final Instant earliest(final Instant i1, final Instant i2) {
     return i1.isBefore(i2) ? i1 : i2;
   }
 
-  public static final Instant latest(Instant i1, Instant i2) {
+  public static final Instant latest(final Instant i1, final Instant i2) {
     return i1.isAfter(i2) ? i1 : i2;
   }
 
-  public static final Duration min(Duration d1, Duration d2) {
+  public static final Duration min(final Duration d1, final Duration d2) {
     return d1.compareTo(d2)<0 ? d1 : d2;
   }
 
-  public static final Duration max(Duration d1, Duration d2) {
+  public static final Duration max(final Duration d1, final Duration d2) {
     return d1.compareTo(d2)>0 ? d1 : d2;
   }
-  
+
   public static final boolean isPositive(final Duration duration){
     return !duration.isNegative() && !duration.isZero();
   }
 
-  public static final String approx(Duration d) {
+  public static final String approx(final Duration d) {
     return d.abs().toDays()>3 ? d.toDays()+" days" : d.toString();
   }
 

@@ -12,8 +12,8 @@ public interface Adapter {
 
   JsonReader newJsonReader(final JsonFactory jf, Reader in);
 
-  JsonWriter newJsonWriter(Writer out);
-  
+  JsonWriter newJsonWriter(Writer out, boolean compact);
+
   default boolean isCanonical(){
     return false;
   }

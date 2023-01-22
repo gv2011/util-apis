@@ -7,6 +7,7 @@ module com.github.gv2011.util{
   requires transitive java.xml;
   requires transitive java.naming;
   requires transitive jakarta.activation;
+  requires transitive java.sql;
 
   uses com.github.gv2011.util.icol.ICollectionFactorySupplier;
   uses com.github.gv2011.util.beans.TypeRegistry;
@@ -22,6 +23,7 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.email;
   exports com.github.gv2011.util.ex;
   exports com.github.gv2011.util.filewatch;
+  exports com.github.gv2011.util.jdbc;
   exports com.github.gv2011.util.html;
   exports com.github.gv2011.util.http;
   exports com.github.gv2011.util.icol;
@@ -36,6 +38,7 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.sec;
   exports com.github.gv2011.util.serviceloader;
   exports com.github.gv2011.util.streams;
+  exports com.github.gv2011.util.tempfile;
   exports com.github.gv2011.util.time;
   exports com.github.gv2011.util.tstr;
   exports com.github.gv2011.util.uc;

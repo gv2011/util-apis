@@ -30,19 +30,23 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
 
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.Constants;
 import com.github.gv2011.util.ServiceLoaderUtils;
 import com.github.gv2011.util.XStream;
+import com.github.gv2011.util.ann.Nullable;
 
 
 /**
@@ -58,28 +62,25 @@ public final class ICollections {
 
   public static final ICollectionFactory iCollections(){return ICOLF.get();}
 
-  @SuppressWarnings("rawtypes")
-  static final Opt EMPTY = iCollections().empty();
-
-  @SuppressWarnings("rawtypes")
-  static final IList EMPTY_LIST = iCollections().emptyList();
-
 
   //Empty:
 
-  @SuppressWarnings("unchecked")
-  public static <E> Opt<E> empty(){
-    return EMPTY;
+  public static Nothing nothing(){
+    return iCollections().nothing();
   }
 
   @SuppressWarnings("unchecked")
+  public static <E> Empty<E> empty(){
+    return iCollections().nothing();
+  }
+
   public static <E> IList<E> emptyList(){
-    return EMPTY_LIST;
+    return iCollections().emptyList();
   }
 
   @SuppressWarnings("unchecked")
-  public static <E> Opt<E> emptySet(){
-    return EMPTY;
+  public static <E> Empty<E> emptySet(){
+    return iCollections().nothing();
   }
 
   public static <E extends Comparable<? super E>> ISortedSet<E> emptySortedSet() {
@@ -101,11 +102,11 @@ public final class ICollections {
     return iCollections().listOf(element);
   }
 
-  public static <E> Opt<E> single(final E element){
-    return iCollections().setOf(element);
+  public static <E> Single<E> single(final E element){
+    return iCollections().single(element);
   }
 
-  public static <E> Opt<E> setOf(final E element){
+  public static <E> Single<E> setOf(final E element){
     return iCollections().single(element);
   }
 
@@ -147,6 +148,10 @@ public final class ICollections {
 
   //Optional:
 
+  public static <E> Opt<E> ofNullable(final @Nullable E nullable){
+    return iCollections().ofNullable(nullable);
+  }
+
   public static <E> Opt<E> ofOptional(final Optional<? extends E> optional){
     return iCollections().ofOptional(optional);
   }
@@ -160,6 +165,17 @@ public final class ICollections {
 
   public static <E> IList<E> listFrom(final Collection<? extends E> collection){
     return iCollections().listFrom(collection);
+  }
+
+  public static <E> IList<E> listFrom(final Iterator<? extends E> iterator){
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false).collect(toIList());
+  }
+
+  public static Path pathFrom(final java.nio.file.Path filePath){
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(filePath.iterator(), 0), false)
+      .map(java.nio.file.Path::toString)
+      .collect(toPath())
+    ;
   }
 
   public static Path pathFrom(final Collection<String> collection){

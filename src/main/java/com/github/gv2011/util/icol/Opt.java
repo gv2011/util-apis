@@ -3,7 +3,7 @@ package com.github.gv2011.util.icol;
 
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.format;
-import static com.github.gv2011.util.icol.Nothing.nothing;
+import static com.github.gv2011.util.icol.ICollections.nothing;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -19,24 +19,26 @@ import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.StreamAccess;
 import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.ex.ThrowingConsumer;
+import com.github.gv2011.util.ex.ThrowingFunction;
+import com.github.gv2011.util.ex.ThrowingRunnable;
+import com.github.gv2011.util.ex.ThrowingSupplier;
 
 public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
 
-  public static <E> Opt<E> of(final E element){
+  public static <E> Single<E> of(final E element){
     return ICollections.single(element);
   }
 
   public static <E> Opt<E> ofOptional(final Optional<? extends E> optional){
-    return optional.isPresent() ? of(optional.get()) : empty();
+    return ICollections.ofOptional(optional);
   }
 
   public static <E> Opt<E> ofNullable(@Nullable final E element){
-    return element==null ? empty() : of(element);
+    return ICollections.ofNullable(element);
   }
 
-  @SuppressWarnings("unchecked")
   public static <E> Opt<E> empty(){
-    return ICollections.EMPTY;
+    return ICollections.empty();
   }
 
   @Override
@@ -47,10 +49,11 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
   @Override
   Opt<E> filter(final Predicate<? super E> predicate);
 
-  <U> Opt<U> map(final Function<? super E, ? extends U> mapper);
+  <U> Opt<U> map(final ThrowingFunction<? super E, ? extends U> mapper);
 
-  default Opt<Nothing> ifPresent(final ThrowingConsumer<? super E> consumer){
-    return map(e->{call(()->consumer.accept(e));return Nothing.INSTANCE;});
+  default Opt<E> ifPresentDo(final ThrowingConsumer<? super E> consumer){
+    if(isPresent()) call(()->consumer.accept(get()));
+    return this;
   }
 
   <U> Opt<U> flatMap(final Function<? super E, ? extends Opt<? extends U>> mapper);
@@ -59,11 +62,16 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
 
   E orElse(final E other);
 
-  E orElseGet(final Supplier<? extends E> supplier);
+  E orElseGet(final ThrowingSupplier<? extends E> supplier);
 
-  default Nothing orElseDo(final Runnable operation){
-    if(isEmpty()) operation.run();
+  default Nothing orElseDo(final ThrowingRunnable operation){
+    if(isEmpty()) call(operation);
     return nothing();
+  }
+
+  default Opt<E> ifEmptyDo(final ThrowingRunnable operation){
+    if(isEmpty()) call(operation);
+    return this;
   }
 
   <X extends Throwable> E orElseThrow(final Supplier<? extends X> exceptionSupplier) throws X;
@@ -136,11 +144,11 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
     return flatMap(o->clazz.isInstance(o) ? of(clazz.cast(o)) : empty());
   }
 
-  default OptionalInt mapToInt(ToIntFunction<? super E> mapping){
+  default OptionalInt mapToInt(final ToIntFunction<? super E> mapping){
     return isPresent() ? OptionalInt.of(mapping.applyAsInt(get())) : OptionalInt.empty();
   }
 
-  default OptionalInt flatMapToInt(Function<? super E, OptionalInt> mapping){
+  default OptionalInt flatMapToInt(final Function<? super E, OptionalInt> mapping){
     return isPresent() ? mapping.apply(get()) : OptionalInt.empty();
   }
 

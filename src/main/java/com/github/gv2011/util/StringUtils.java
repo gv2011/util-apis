@@ -121,25 +121,33 @@ public final class StringUtils {
   }
 
   public static String multiply(final char c, final int factor) {
-    if (factor < 0) throw new IllegalArgumentException();
-    final char[] chars = new char[factor];
+    return new String(fillArray(c, factor));
+  }
+
+  public static char[] fillArray(final char c, final int length) {
+    final char[] chars = new char[length];
     Arrays.fill(chars, c);
-    return new String(chars);
+    return chars;
   }
 
   public static String alignRight(final Object str, final int size) {
     return alignRight(str.toString(), size, ' ');
   }
 
+  public static String alignLeft(final Object str, final int size) {
+    return alignLeft(str.toString(), size, ' ');
+  }
+
   public static String alignRight(final CharSequence str, final int size, final char fill) {
-    final char[] chars = new char[size];
     final int fillSize = size - str.length();
     if (fillSize < 0) throw new IllegalArgumentException("Does not fit.");
-    for (int i = 0; i < fillSize; i++)
-      chars[i] = fill;
-    for (int i = 0; i < str.length(); i++)
-      chars[fillSize + i] = str.charAt(i);
-    return String.copyValueOf(chars);
+    return new StringBuilder(size).append(fillArray(fill, fillSize)).append(str).toString();
+  }
+
+  public static String alignLeft(final CharSequence str, final int size, final char fill) {
+    final int fillSize = size - str.length();
+    if (fillSize < 0) throw new IllegalArgumentException("Does not fit.");
+    return new StringBuilder(size).append(str).append(fillArray(fill, fillSize)).toString();
   }
 
   public static SortedSet<String> splitToSet(final String str) {

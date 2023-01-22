@@ -1,94 +1,184 @@
 package com.github.gv2011.util.icol;
 
-import java.util.Arrays;
+import static com.github.gv2011.util.ex.Exceptions.call;
+import static com.github.gv2011.util.ex.Exceptions.format;
+import static com.github.gv2011.util.icol.ICollections.empty;
+import static com.github.gv2011.util.icol.ICollections.iCollections;
+import static com.github.gv2011.util.icol.ICollections.listOf;
+import static com.github.gv2011.util.icol.ICollections.nothing;
+import static com.github.gv2011.util.icol.ICollections.setOf;
+
 import java.util.Collection;
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2018 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
+import java.util.OptionalInt;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 
-import com.github.gv2011.util.ann.Nullable;
+import com.github.gv2011.util.XStream;
+import com.github.gv2011.util.ex.ThrowingConsumer;
+import com.github.gv2011.util.ex.ThrowingFunction;
+import com.github.gv2011.util.ex.ThrowingRunnable;
+import com.github.gv2011.util.ex.ThrowingSupplier;
 
-public final class Single<E> extends Ref<E>{
+public interface Single<E> extends Opt<E>{
+
+  @Override
+  default XStream<E> stream() {
+    return XStream.of(get());
+  }
+
+  @Override
+  default XStream<E> parallelStream() {
+    return XStream.parallelStreamOf(get());
+  }
+
+  @Override
+  default Single<E> asOpt() {
+    return this;
+  }
+
+  @Override
+  default E single() {
+    return get();
+  }
+
+  @Override
+  default E first() {
+    return get();
+  }
+
+  @Override
+  default Single<E> tryGetFirst() {
+    return this;
+  }
+
+  @Override
+  default boolean containsElement(final E element) {
+    return get().equals(element);
+  }
+
+  @Override
+  default IList<E> asList() {
+    return listOf(get());
+  }
+
+  @Override
+  default int size() {
+    return 1;
+  }
+
+  @Override
+  default boolean contains(final Object o) {
+    return get().equals(o);
+  }
+
+  @Override
+  default boolean containsAll(final Collection<?> c) {
+    final E element = get();
+    return c.parallelStream().allMatch(e->e.equals(element));
+  }
+
+  @Override
+  default Opt<E> intersection(final Collection<?> other) {
+    return other.contains(get()) ? this : empty();
+  }
+
+  @Override
+  default void forEach(final Consumer<? super E> action) {
+    action.accept(get());
+  }
+
+  @Override
+  default boolean isPresent() {
+    return true;
+  }
+
+  @Override
+  default Opt<E> filter(final Predicate<? super E> predicate) {
+    return predicate.test(get()) ? this : empty();
+  }
+
+  @Override
+  default <U> Single<U> map(final ThrowingFunction<? super E, ? extends U> mapper) {
+    return setOf(mapper.apply(get()));
+  }
+
+  @Override
+  default Single<E> ifPresentDo(final ThrowingConsumer<? super E> consumer) {
+    call(()->consumer.accept(get()));
+    return this;
+  }
 
   @SuppressWarnings("unchecked")
-  public static final <T> Opt<T> ofNullable(final @Nullable T obj){
-    return obj==null ? IEmpty.INSTANCE : of(obj);
-  }
-
-  public static final <T> Opt<T> of(final T obj){
-    return new Single<>(obj);
-  }
-
-  private final E element;
-
-  Single(final E element) {
-    this.element = element;
+  @Override
+  default <U> Opt<U> flatMap(final Function<? super E, ? extends Opt<? extends U>> mapper) {
+    return (Opt<U>) mapper.apply(get());
   }
 
   @Override
-  public E get() {
-    return element;
+  default Single<E> or(final Supplier<? extends Opt<? extends E>> supplier) {
+    return this;
   }
 
   @Override
-  public <U> Opt<U> map(final Function<? super E, ? extends U> mapper) {
-    return new Single<>(mapper.apply(element));
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public Opt<E> subtract(final Collection<?> other) {
-    return other.contains(element) ? this : IEmpty.INSTANCE;
+  default E orElse(final E other) {
+    return get();
   }
 
   @Override
-  public ISet<E> addElement(final E element) {
-    return ICollections.<E>setBuilder().add(this.element).add(element).build();
+  default E orElseGet(final ThrowingSupplier<? extends E> supplier) {
+    return get();
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  public <T> T[] toArray(final T[] a) {
-    T[] result;
-    if(a.length==0){
-      result = Arrays.copyOf(a, 1);
-      result[0] = (T) element;
-    }
-    else{
-      if(a.length>1) a[1] = null;
-      a[0] = (T) element;
-      result = a;
-    }
-    return result;
+  default Nothing orElseDo(final ThrowingRunnable operation) {
+    return nothing();
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  public Opt<E> intersection(Collection<?> other) {
-    return other.contains(element) ? this : IEmpty.INSTANCE;
+  default <X extends Throwable> E orElseThrow(final Supplier<? extends X> exceptionSupplier) throws X {
+    return get();
+  }
+
+  @Override
+  default boolean isEmpty() {
+    return false;
+  }
+
+  @Override
+  default ISet<E> addElement(final E other) {
+    return get().equals(other) ? this : iCollections().<E>setBuilder().add(get()).add(other).build();
+  }
+
+
+  @Override
+  default Opt<E> merge(final Opt<? extends E> other) {
+    if(other.isPresent()) throw new IllegalStateException(
+      format("Both optional values are present: ({} and {}).", get(), other.get())
+    );
+    return this;
+  }
+
+  @Override
+  default Opt<E> subtract(final Collection<?> other) {
+    return other.contains(get()) ? empty() : this;
+  }
+
+  @Override
+  default <T> Opt<T> tryCast(final Class<T> clazz) {
+    return clazz.isInstance(get()) ? setOf(clazz.cast(get())) : empty();
+  }
+
+  @Override
+  default OptionalInt mapToInt(final ToIntFunction<? super E> mapping) {
+    return OptionalInt.of(mapping.applyAsInt(get()));
+  }
+
+  @Override
+  default OptionalInt flatMapToInt(final Function<? super E, OptionalInt> mapping) {
+    return mapping.apply(get());
   }
 
 }

@@ -122,7 +122,7 @@ public final class Zipper {
           final Path path = resolve(targetFolder, ze.getName());
           verify(path, p->FileUtils.isInside(p, targetFolder));
           final Opt<Path> filtered = pathFilter.apply(path);
-          filtered.ifPresent(f->{
+          filtered.ifPresentDo(f->{
             if(ze.isDirectory()){
               call(()->Files.createDirectories(f));
             }

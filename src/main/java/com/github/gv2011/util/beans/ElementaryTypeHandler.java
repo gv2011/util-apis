@@ -19,6 +19,10 @@ public interface ElementaryTypeHandler<T>{
     return JsonNodeType.STRING;
   }
 
+  default boolean isInstance(final Class<T> clazz, final Object object) {
+      return clazz.isInstance(object);
+  }
+
   default T cast(final Class<T> clazz, final Object object) {
       return clazz.cast(object);
   }

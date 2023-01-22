@@ -3,6 +3,9 @@ package com.github.gv2011.util;
 import static com.github.gv2011.util.CollectionUtils.pair;
 import static com.github.gv2011.util.CollectionUtils.toSingle;
 import static com.github.gv2011.util.ex.Exceptions.call;
+import static com.github.gv2011.util.icol.ICollections.iCollections;
+import static java.util.Spliterator.NONNULL;
+import static java.util.Spliterator.ORDERED;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -98,7 +101,7 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
   <R> XStream<R> flatMap(Function<? super E, ? extends Stream<? extends R>> mapper);
 
   default <R> XStream<R> mapThrowing(final ThrowingFunction<? super E, ? extends R> mapper){
-    return map(e->call(()->mapper.apply(e)));
+    return map(e->call(()->mapper.applyThrowing(e)));
   }
 
   default <R> XStream<Pair<E,R>> enrich(final Function<? super E, ? extends R> mapper){
@@ -158,8 +161,8 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
   }
 
   public static <E> XStream<E> fromIterator(final Iterator<? extends E> iterator) {
-    return ICollections.xStream(
-      Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED),
+    return iCollections().xStream(
+      Spliterators.spliteratorUnknownSize(iterator, ORDERED|NONNULL),
       false
     );
   }

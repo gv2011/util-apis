@@ -380,6 +380,10 @@ public final class CollectionUtils {
     return intRange(0, endExclusive);
   }
 
+  public static IntStream intStream(final List<?> list){
+    return intStream(list.size());
+  }
+
   public static int listHashCode(final Iterable<?> list){
     int hashCode = 1;
     for(final Object e: list) hashCode = 31*hashCode + (e==null ? 0 : e.hashCode());

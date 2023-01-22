@@ -49,7 +49,7 @@ final class PeriodicalTask implements AutoCloseableNt, Inline{
         nextTime = nextTime.plus(interval);
         new Thread(()->{
             try {
-              operation.run();
+              operation.runThrowing();
             } catch (Throwable e) {
               LOG.error("Error, task will not be executed again.", e);
               close();

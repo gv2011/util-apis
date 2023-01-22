@@ -34,7 +34,7 @@ public abstract class AbstractArtifactMarker implements ArtifactMarker{
   }
 
   private void verifyConsistentWithModuleAnnotation() {
-    getAnnotation().ifPresent(artifact->{
+    getAnnotation().ifPresentDo(artifact->{
       verify(
         artifact.groupId(),
         g->g.isEmpty() || g.equals(artifactRef().groupId().toString()),

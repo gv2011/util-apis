@@ -42,7 +42,7 @@ public final class StreamEvents {
     final ThrowingSupplier<InputStream> stream, final Consumer<StreamEvent> eventHandler
   ){
     @Nullable Processor result = null;
-    final InputStream s = call(stream::get);
+    final InputStream s = call(stream::getThrowing);
     try{
 //      result = new ProcessorImp(s, eventHandler);
       result = notYetImplemented();

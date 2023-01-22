@@ -146,4 +146,10 @@ implements ISortedSet<E>{
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  protected final Object clone() throws CloneNotSupportedException {
+    throw new CloneNotSupportedException();
+  }
+
+
 }

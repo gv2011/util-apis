@@ -9,36 +9,38 @@ import java.util.function.Supplier;
 @FunctionalInterface
 public interface ThrowingSupplier<R> extends ArgumentIgnoringThrowingFunction<Object,R>{
 
-  R get() throws Exception;
+  R getThrowing() throws Exception;
+
+  default R get() {
+    try {
+       return getThrowing();
+    }
+    catch (final InterruptedException e) {
+      throw new InterruptedRtException(e);
+    }
+    catch (final InterruptedIOException e) {
+      throw new InterruptedRtException(e);
+    }
+    catch (final IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    catch (final RuntimeException e) {
+      throw e;
+    }
+    catch (final Exception e) {
+      throw new WrappedException(e);
+    }
+  }
 
   @Override
   default Function<Object,R> asFunction() {
-    return (final Object arg) -> {
-      try {
-         return get();
-      }
-      catch (final InterruptedException e) {
-        throw new InterruptedRtException(e);
-      }
-      catch (final InterruptedIOException e) {
-        throw new InterruptedRtException(e);
-      }
-      catch (final IOException e) {
-        throw new UncheckedIOException(e);
-      }
-      catch (final RuntimeException e) {
-        throw e;
-      }
-      catch (final Exception e) {
-        throw new WrappedException(e);
-      }
-    };
+    return o->get();
   }
 
   default Function<Object,R> asFunction(final Supplier<?> exceptionMessage) {
     return (final Object arg) -> {
       try {
-         return get();
+         return getThrowing();
       }
       catch (final Exception e) {
         throw new WrappedException(e, String.valueOf(exceptionMessage.get()));

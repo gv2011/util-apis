@@ -4,8 +4,8 @@ import static com.github.gv2011.util.Verify.notNull;
 import static com.github.gv2011.util.Verify.verifyEqual;
 import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.icol.ICollections.iCollections;
+import static com.github.gv2011.util.icol.ICollections.nothing;
 import static com.github.gv2011.util.icol.ICollections.toISet;
-import static com.github.gv2011.util.icol.Nothing.nothing;
 
 import java.util.AbstractSet;
 import java.util.Collection;

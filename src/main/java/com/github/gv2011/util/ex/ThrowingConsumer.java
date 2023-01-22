@@ -1,5 +1,6 @@
 package com.github.gv2011.util.ex;
 
+import static com.github.gv2011.util.icol.ICollections.nothing;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
@@ -42,7 +43,7 @@ public interface ThrowingConsumer<T> extends Throwing<T,Nothing>{
       catch (final Exception e) {
         throw new WrappedException(e);
       }
-      return Nothing.INSTANCE;
+      return nothing();
     };
   }
 

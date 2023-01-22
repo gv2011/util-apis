@@ -56,7 +56,7 @@ public class JarUtils {
   private static final String M_SUFFIX = "/pom.properties";
 
   public static final MvnJarId getMavenId(final ThrowingSupplier<InputStream> streamSource){
-    return callWithCloseable(()->streamSource.get(), s->{
+    return callWithCloseable(()->streamSource.getThrowing(), s->{
       final JarInputStream jis = new JarInputStream(s);
       @Nullable MvnJarId result = null;
       @Nullable JarEntry e = jis.getNextJarEntry();

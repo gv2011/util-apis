@@ -2,7 +2,7 @@ package com.github.gv2011.util.ex;
 
 import static com.github.gv2011.util.icol.ICollections.asList;
 import static com.github.gv2011.util.icol.ICollections.toIList;
-import static com.github.gv2011.util.icol.Nothing.nothing;
+import static com.github.gv2011.util.icol.ICollections.nothing;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -110,7 +110,7 @@ public final class Exceptions {
 
   public static final ThrowingSupplier<Nothing> supplier(final ThrowingRunnable runnable) {
     return ()->{
-      runnable.run();
+      runnable.runThrowing();
       return nothing();
     };
   }
@@ -129,12 +129,12 @@ public final class Exceptions {
   ){
     if(operations.isEmpty()){} //do nothing
     else if(operations.size()==1) {
-      call(()->operations.get(0).run());
+      call(()->operations.get(0).runThrowing());
     }
     else{
       Throwable t1 = null;
       try{
-        try{operations.get(0).run();}
+        try{operations.get(0).runThrowing();}
         catch(final Throwable t){
           t1 = t;
           throw wrap(t);
@@ -185,9 +185,9 @@ public final class Exceptions {
     final ThrowingConsumer<? super C> closer
   ){
     try{
-      final C closeable = supplier.get();
+      final C closeable = supplier.getThrowing();
       try{
-        return function.apply(closeable);
+        return function.applyThrowing(closeable);
       }finally{
         closer.accept(closeable);
       }
@@ -202,10 +202,10 @@ public final class Exceptions {
   ){
     @Nullable I wrapped = null;
     try{
-      final C closeable = supplier.get();
+      final C closeable = supplier.getThrowing();
       try{
-        wrapped = wrapper.apply(closeable);
-        return function.apply(wrapped);
+        wrapped = wrapper.applyThrowing(closeable);
+        return function.applyThrowing(wrapped);
       }finally{
         if(wrapped == null) closeable.close();
         else wrapped.close();
@@ -218,7 +218,7 @@ public final class Exceptions {
     final ThrowingSupplier<C> supplier, final ThrowingConsumer<C> consumer
   ){
     callWithCloseable(supplier, consumer, AutoCloseable::close);
-    return Nothing.INSTANCE;
+    return nothing();
   }
 
   public static <C extends OptCloseable> Nothing callWithOptCloseable(
@@ -233,12 +233,12 @@ public final class Exceptions {
     final ThrowingConsumer<? super C> closer
   ){
     try{
-      final C closeable = supplier.get();
+      final C closeable = supplier.getThrowing();
       try{consumer.accept(closeable);}
       finally{closer.accept(closeable);}
     }
     catch(final Exception ex){throw wrap(ex);}
-    return Nothing.INSTANCE;
+    return nothing();
   }
 
   public static <CI extends AutoCloseable, CO extends AutoCloseable> CO wrapCloseable(
@@ -246,7 +246,7 @@ public final class Exceptions {
   ) {
     boolean success = false;
     try {
-      final CO result = wrapping.apply(inner);
+      final CO result = wrapping.applyThrowing(inner);
       success = false;
       return result;
     } catch (final Exception e) {

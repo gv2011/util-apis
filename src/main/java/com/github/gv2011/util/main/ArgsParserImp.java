@@ -62,10 +62,10 @@ final class ArgsParserImp implements ArgsParser {
       }
       else {
         argsMap.tryGet(p.name()).orElse(Opt.empty())
-          .ifPresent(v -> {
+          .ifPresentDo(v -> {
             final Object value;
             try {
-              value = v.trim().startsWith("\"") 
+              value = v.trim().startsWith("\"")
                 ? propType.parse(jsonFactory.deserialize(v))
                 : propType.parse(v)
               ;
@@ -89,7 +89,7 @@ final class ArgsParserImp implements ArgsParser {
       .filter(e -> e.getValue().size() == 1)
       .filter(e -> !exclude.contains(e.getKey()))
       .collect(toIMap(
-        e -> (Character) e.getKey(), 
+        e -> (Character) e.getKey(),
         e -> (String) e.getValue().get(0)
       ))
     ;

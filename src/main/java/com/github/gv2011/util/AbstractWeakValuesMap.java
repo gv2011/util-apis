@@ -2,7 +2,7 @@ package com.github.gv2011.util;
 
 import static com.github.gv2011.util.Verify.verifyEqual;
 import static com.github.gv2011.util.ex.Exceptions.format;
-import static com.github.gv2011.util.icol.Nothing.nothing;
+import static com.github.gv2011.util.icol.ICollections.nothing;
 
 import java.lang.ref.WeakReference;
 import java.util.AbstractMap;
@@ -54,7 +54,7 @@ extends AbstractMap<ID,V> implements NullSafeMap<ID,V>{
   public final void add(final V value) {
     synchronized(values){
       values.put(value, nothing());
-      tryGetIndex().ifPresent(i->i.put(idFunction.apply(value), new WeakReference<>(value)));
+      tryGetIndex().ifPresentDo(i->i.put(idFunction.apply(value), new WeakReference<>(value)));
     }
   }
 
@@ -77,7 +77,7 @@ extends AbstractMap<ID,V> implements NullSafeMap<ID,V>{
   public final Opt<V> tryRemove(final Object key) {
     synchronized(values){
       final Opt<V> removed = Opt.ofNullable(getIndex().remove(key)).flatMap(r->Opt.ofNullable(r.get()));
-      removed.ifPresent(v->values.remove(v));
+      removed.ifPresentDo(v->values.remove(v));
       return removed;
     }
   }

@@ -141,7 +141,7 @@ public class ByteUtils {
 
   public static Bytes copyFromStream(final ThrowingSupplier<InputStream> in){
     return callWithCloseable(
-      in::get,
+      in::getThrowing,
       s->{
         final byte[] buffer = new byte[1024];
         int count = s.read(buffer);

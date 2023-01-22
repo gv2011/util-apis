@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 import com.github.gv2011.util.bytes.HashFactory;
 import com.github.gv2011.util.bytes.TypedBytes;
+import com.github.gv2011.util.bytes.HashFactory.HashBuilder;
 import com.github.gv2011.util.ex.ThrowingSupplier;
 
 public final class HashUtils {
@@ -14,6 +15,10 @@ public final class HashUtils {
 
   public static TypedBytes hash(final HashAlgorithm algorithm, final ThrowingSupplier<InputStream> input){
     return HashFactory.INSTANCE.get().hash(algorithm, input);
+  }
+
+  public static HashBuilder hashBuilder() {
+    return HashFactory.INSTANCE.get().hashBuilder();
   }
 
 }

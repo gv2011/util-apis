@@ -1,9 +1,9 @@
 package com.github.gv2011.util.serviceloader;
 
+import static com.github.gv2011.util.Verify.notNull;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.format;
-import static com.github.gv2011.util.icol.ICollections.iCollections;
 import static com.github.gv2011.util.icol.ICollections.setFrom;
 import static java.util.stream.Collectors.toSet;
 
@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,11 +30,11 @@ import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.Constants;
 import com.github.gv2011.util.ann.GuardedBy;
 import com.github.gv2011.util.ann.Nullable;
+import com.github.gv2011.util.ex.ThrowingSupplier;
+import com.github.gv2011.util.icol.ICollectionFactory;
 import com.github.gv2011.util.icol.ICollectionFactorySupplier;
-import com.github.gv2011.util.icol.IEmpty;
 import com.github.gv2011.util.icol.ISet;
 import com.github.gv2011.util.icol.Opt;
-import com.github.gv2011.util.icol.Single;
 import com.github.gv2011.util.log.LogAdapter;
 
 
@@ -96,7 +95,7 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
     return Constants.cachedConstant(()->service(serviceClass));
   }
 
-  public static final <S> Constant<S> lazyService(final Class<S> serviceClass, final Supplier<S> fallback) {
+  public static final <S> Constant<S> lazyService(final Class<S> serviceClass, final ThrowingSupplier<S> fallback) {
     return Constants.cachedConstant(()->{
       final Opt<S> tryGetService = tryGetService(serviceClass);
       return tryGetService.orElseGet(fallback);
@@ -126,6 +125,7 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
   private final Map<Class<?>,Set<?>> services = new HashMap<>();
   private final Set<Class<?>> loading = new HashSet<>();
   private final List<AutoCloseable> closeableServices = new ArrayList<>();
+  private final ICollectionFactory iCollections;
   private final @Nullable LogAdapter logAdapter;
 
   @GuardedBy("lock")
@@ -134,6 +134,12 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
   private volatile @Nullable Logger logger = null;
 
   private RecursiveServiceLoader() throws Exception {
+    final ICollectionFactorySupplier iCollectionFactorySupplier = loadBasicService(ICollectionFactorySupplier.class, true);
+    iCollections = iCollectionFactorySupplier.get();
+    services.put(
+      ICollectionFactorySupplier.class,
+      Collections.singleton(iCollectionFactorySupplier)
+    );
     logAdapter = loadBasicService(LogAdapter.class, false);
     if(logAdapter!=null){
       services.put(LogAdapter.class, Collections.singleton(logAdapter));
@@ -141,10 +147,6 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
     else{
       services.put(LogAdapter.class, Collections.emptySet());
     }
-    services.put(
-      ICollectionFactorySupplier.class,
-      Collections.singleton(loadBasicService(ICollectionFactorySupplier.class, true))
-    );
   }
 
   private static <S> @Nullable S loadBasicService(
@@ -175,18 +177,18 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
   }
 
   private <S> S getService(final Class<S> serviceClass) {
-    return tryGetServiceInternal(serviceClass)
-      .orElseThrow(()->new IllegalStateException(format("No implementation for {} found.", serviceClass))
-    );
+    return
+      tryGetServiceInternal(serviceClass)
+      .orElseThrow(()->new IllegalStateException(format("No implementation for {} found.", serviceClass)))
+    ;
   }
 
-  @SuppressWarnings("unchecked")
   private <S> Opt<S> tryGetServiceInternal(final Class<S> serviceClass) {
     final Set<S> services = getAllServices(serviceClass);
-    if(services.isEmpty()) return IEmpty.INSTANCE;
+    if(services.isEmpty()) return iCollections.empty();
     else{
       verify(services, s->s.size()==1, s->format("Multiple implementations for service {}: {}.", serviceClass, s));
-      return Single.of(services.iterator().next());
+      return iCollections.single(services.iterator().next());
     }
   }
 
@@ -194,7 +196,7 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
   private <S> Set<S> getAllServices(final Class<S> serviceClass) {
     synchronized(lock) {
       verify(!closing);
-      Opt<Set<?>> entry = Single.ofNullable(services.get(serviceClass));
+      Opt<Set<?>> entry = iCollections.ofNullable(services.get(serviceClass));
       if(!entry.isPresent()) {
         final boolean added = loading.add(serviceClass);
         try{
@@ -202,7 +204,7 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
             throw new RuntimeException(format("Infinite recursion: already loading {}.", serviceClass.getName()));
           }
           loadServices(serviceClass);
-          entry = Single.of(services.get(serviceClass));
+          entry = iCollections.single(services.get(serviceClass));
         }
         finally{loading.remove(serviceClass);}
       }
@@ -263,7 +265,6 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
   @Override
   public void close() {
     final boolean doClose;
-    iCollections();
     final Logger logger = getLogger();
     synchronized(lock){
       doClose = !closing;
@@ -272,7 +273,7 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
     if(doClose){
       logger.info("Closing.");
       Opt<AutoCloseable> toClose = getLast();
-      while(toClose.isPresent()){
+      while(notNull(toClose).isPresent()){
         final AutoCloseable service = toClose.get();
         try {
           logger.debug("Closing service {}", service);
@@ -307,8 +308,8 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
     synchronized(lock){
       return
         closeableServices.isEmpty()
-        ? Opt.empty()
-        : Opt.of(closeableServices.get(closeableServices.size()-1))
+        ? iCollections.empty()
+        : iCollections.single(closeableServices.get(closeableServices.size()-1))
       ;
     }
   }

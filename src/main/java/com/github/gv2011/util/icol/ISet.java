@@ -30,6 +30,7 @@ import static com.github.gv2011.util.icol.ICollections.toISet;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.github.gv2011.util.XStream;
 
@@ -105,6 +106,13 @@ public interface ISet<E> extends Set<E>, ICollectionG<E, ISet<E>>{
 
   @Deprecated
   @Override
+  default boolean removeIf(final Predicate<? super E> filter) {
+    throw new UnsupportedOperationException();
+  }
+
+
+  @Deprecated
+  @Override
   default boolean retainAll(final Collection<?> c) {
     throw new UnsupportedOperationException();
   }
@@ -114,6 +122,4 @@ public interface ISet<E> extends Set<E>, ICollectionG<E, ISet<E>>{
   default void clear() {
     throw new UnsupportedOperationException();
   }
-
-
 }

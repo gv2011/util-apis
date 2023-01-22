@@ -159,7 +159,7 @@ public final class Constants{
     @Override
     protected T retrieveValue() {
       assert Thread.holdsLock(lock);
-      final T value = call(supplier::get);
+      final T value = call(supplier::getThrowing);
       supplier = null;
       return value;
     }

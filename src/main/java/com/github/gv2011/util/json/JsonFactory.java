@@ -19,11 +19,17 @@ import com.github.gv2011.util.serviceloader.Service;
 @Service(defaultImplementation="com.github.gv2011.util.json.imp/com.github.gv2011.util.json.imp.JsonFactoryImp")
 public interface JsonFactory {
 
+  static final boolean COMPACT_DEFAULT = false;
+
   JsonNode deserialize(String json);
 
-  default String serialize(JsonNode json){
+  default String serialize(final JsonNode json){
+    return serialize(json, COMPACT_DEFAULT);
+  }
+
+  default String serialize(final JsonNode json, final boolean compact){
     return callWithCloseable(StringWriter::new, sw->{
-      final JsonWriter jsonWriter = jsonWriter(sw);
+      final JsonWriter jsonWriter = jsonWriter(sw, compact);
       json.write(jsonWriter);
       jsonWriter.flush();
       return sw.toString();
@@ -32,7 +38,7 @@ public interface JsonFactory {
 
   JsonReader jsonReader(Reader in);
 
-  JsonWriter jsonWriter(Writer writer);
+  JsonWriter jsonWriter(Writer writer, final boolean compact);
 
   JsonList asJsonList(IList<?> list, Function<Object,JsonNode> converter);
 
@@ -56,15 +62,15 @@ public interface JsonFactory {
 
   JsonNumber primitive(Decimal number);
 
-  default JsonNumber primitive(int i){
+  default JsonNumber primitive(final int i){
     return primitive(NumUtils.from(i));
   }
 
-  default JsonNumber primitive(long i){
+  default JsonNumber primitive(final long i){
     return primitive(NumUtils.from(i));
   }
 
-  default JsonNumber primitive(BigDecimal d){
+  default JsonNumber primitive(final BigDecimal d){
     return primitive(NumUtils.from(d));
   }
 

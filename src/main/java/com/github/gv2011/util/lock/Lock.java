@@ -1,6 +1,6 @@
 package com.github.gv2011.util.lock;
 
-import static com.github.gv2011.util.icol.Nothing.nothing;
+import static com.github.gv2011.util.icol.ICollections.nothing;
 
 import java.time.Duration;
 import java.util.function.Function;
@@ -43,10 +43,10 @@ public interface Lock {
   void await(final Duration timeOut);
 
   <A,R> R apply(A argument, Function<A,R> operation);
-  
+
   <R> R callWhen(Supplier<Boolean> condition, Supplier<R> operation);
 
-  default <R> R call(Supplier<R> operation) {
+  default <R> R call(final Supplier<R> operation) {
     return apply(nothing(), n->operation.get());
   }
 

@@ -1,7 +1,7 @@
 package com.github.gv2011.util.cache;
 
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
-import static com.github.gv2011.util.icol.Nothing.nothing;
+import static com.github.gv2011.util.icol.ICollections.nothing;
 
 import java.lang.ref.SoftReference;
 import java.util.function.Consumer;

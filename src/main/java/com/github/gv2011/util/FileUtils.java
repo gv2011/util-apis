@@ -329,7 +329,7 @@ public final class FileUtils {
   public static <T> T callWithTempFolder(final Class<?> clazz, final ThrowingFunction<Path,? extends T> f) {
     return call(()->{
       final Path folder = Files.createTempDirectory(clazz.getName());
-      try{return f.apply(folder);}
+      try{return f.applyThrowing(folder);}
       finally{
         delete(folder);
       }
