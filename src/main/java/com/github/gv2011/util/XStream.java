@@ -93,6 +93,9 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
   @Override
   XStream<E> sorted();
 
+  @Override
+  XStream<E> unordered();
+
 
   @Override
   <R> XStream<R> map(Function<? super E, ? extends R> mapper);
@@ -126,11 +129,15 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
   @SafeVarargs
   public static<T> XStream<T> of(final T... values) {
     return xStream(Arrays.stream(values));
-}
+  }
 
   public static<T> XStream<T> ofArray(final T[] values) {
-    return xStream(Arrays.stream(values));
-}
+    return ofArray(values, false);
+  }
+
+  public static<T> XStream<T> ofArray(final T[] values, final boolean parallel) {
+    return xStream(StreamSupport.stream(Arrays.spliterator(values), parallel));
+  }
 
   public static <E> XStream<E> pStream(final Stream<E> s){
     return ICollections.pStream(s);

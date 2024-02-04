@@ -1,42 +1,41 @@
 package com.github.gv2011.util.bytes;
 
+import static com.github.gv2011.util.BeanUtils.beanBuilder;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
 import java.util.Arrays;
 
 import com.github.gv2011.util.ann.Immutable;
+import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.num.NumUtils;
 
 @Immutable
 class ArrayBytes extends AbstractBytes{
 
-  static final AbstractBytes EMPTY = new ArrayBytes(new byte[0]);
+  static final AbstractBytes EMPTY = new ArrayBytes(new byte[0], null);
 
   private final byte[] bytes;
+  private final @Nullable Hash256 hash;
 
   static AbstractBytes create(final byte[] bytes){
-    return bytes.length==0 ? EMPTY : new ArrayBytes(bytes);
+    return bytes.length==0 ? EMPTY : new ArrayBytes(bytes, null);
   }
 
-  private ArrayBytes(final byte[] bytes) {
+  static Bytes create(final byte[] bytes, final Hash256 hash) {
+    return bytes.length==0 ? EMPTY : new ArrayBytes(bytes, hash);
+  }
+
+
+  private ArrayBytes(final byte[] bytes, final @Nullable Hash256 hash) {
     this.bytes = bytes;
+    this.hash = hash;
   }
-
-  @Override
-  protected Hash256 hashImp() {
-    final MessageDigest md = call(()->MessageDigest.getInstance("SHA-256"));
-    md.update(bytes);
-    return new Hash256Imp(md);
-  }
-
 
   @Override
   public BigInteger toBigInteger() {
@@ -75,13 +74,8 @@ class ArrayBytes extends AbstractBytes{
     checkIndices(fromIndex, toIndex, size);
     if(fromIndex==0 && toIndex==size) return this;
     else{
-      return new ArrayBytes(Arrays.copyOfRange(bytes, (int)fromIndex, (int)toIndex));
+      return new ArrayBytes(Arrays.copyOfRange(bytes, (int)fromIndex, (int)toIndex), null);
     }
-  }
-
-  @Override
-  public String utf8ToString() throws TooBigException {
-    return new String(bytes, UTF_8);
   }
 
   @Override
@@ -92,6 +86,17 @@ class ArrayBytes extends AbstractBytes{
   @Override
   public Hash256 asHash() {
     return new Hash256Imp(bytes);
+  }
+
+  @Override
+  protected HashAndSize hashImp() {
+    return hash==null ? super.hashImp()
+      :(beanBuilder(HashAndSize.class)
+        .set(HashAndSize::size).to((long)size())
+        .set(HashAndSize::hash).to(hash)
+        .build()
+      )
+    ;
   }
 
   @Override

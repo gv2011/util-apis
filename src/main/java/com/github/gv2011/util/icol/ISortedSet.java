@@ -1,5 +1,6 @@
 package com.github.gv2011.util.icol;
 
+import static com.github.gv2011.util.icol.ICollections.toIList;
 import static com.github.gv2011.util.icol.ICollections.toISortedSet;
 
 import java.util.Collection;
@@ -51,7 +52,7 @@ public interface ISortedSet<E extends Comparable<? super E>> extends ISet<E>, Na
   default boolean isEmpty(){
     return size()==0;
   }
-  
+
   @Override
   default ISortedSet<E> subSet(final E fromElement, final E toElement){
     return this.subSet(fromElement, true, toElement, false);
@@ -94,11 +95,22 @@ public interface ISortedSet<E extends Comparable<? super E>> extends ISet<E>, Na
   @Override
   XStream<E> stream();
 
+  @Override
+  XStream<E> parallelStream();
+
   XStream<E> descendingStream();
 
   XStream<E> descendingStream(E startExclusive);
 
-  Opt<E> tryGetLast();
+  default Opt<E> tryGetLast() {
+    return descendingStream().tryFindFirst();
+  }
+
+  @Override
+  default Iterator<E> descendingIterator() {
+    return descendingStream().iterator();
+  }
+
 
   @Override
   default E first(){
@@ -173,9 +185,24 @@ public interface ISortedSet<E extends Comparable<? super E>> extends ISet<E>, Na
     return result;
   }
 
+  @Override
+  default ISortedSet<E> join(final Collection<? extends E> other) {
+    if(other.isEmpty()) return this;
+    else{
+      final ISortedSet<E> result = parallelStream().concat(other.parallelStream().unordered()).collect(toISortedSet());
+      final boolean noChange = result.size() == size();
+      assert noChange ? equals(result) : true;
+      return noChange ? this : result;
+    }
+  }
 
   @Override
   ISortedSet<E> intersection(Collection<?> other);
+
+  @Override
+  default IList<E> subList(final int fromIndex, final int toIndex) {
+    return stream().skip(fromIndex).limit(toIndex-fromIndex).collect(toIList());
+  }
 
   @Deprecated
   @Override

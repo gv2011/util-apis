@@ -4,7 +4,6 @@ import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.Verify.verifyEqual;
 
 import java.util.HashSet;
-import java.util.Locale;
 
 /**
  * Replacement for void/Void in some situations (avoids null). Example: allows
@@ -17,7 +16,7 @@ public interface Nothing extends Empty{
   public static final int HASH_CODE = verify(new HashSet().hashCode(), i->i.intValue()==0);
 
   public static Nothing parse(final CharSequence cs) {
-    verifyEqual(cs.toString().toUpperCase(Locale.ROOT), STRING_VALUE);
+    verifyEqual(cs.toString(), STRING_VALUE);
     return ICollections.nothing();
   }
 

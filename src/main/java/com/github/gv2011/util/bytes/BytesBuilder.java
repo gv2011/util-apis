@@ -1,5 +1,6 @@
 package com.github.gv2011.util.bytes;
 
+import static com.github.gv2011.util.BeanUtils.beanBuilder;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -21,7 +22,7 @@ import com.github.gv2011.util.ann.NotThreadSafe;
 
 
 @NotThreadSafe
-public class BytesBuilder extends FilterOutputStream implements Builder<Bytes>, AutoCloseableNt{
+public final class BytesBuilder extends FilterOutputStream implements Builder<Bytes>, AutoCloseableNt{
 
   private final Logger LOG = getLogger(BytesBuilder.class);
 
@@ -96,8 +97,6 @@ public class BytesBuilder extends FilterOutputStream implements Builder<Bytes>, 
     }
   }
 
-
-
   @Override
   public void write(final int b){
     checkSize(1);
@@ -107,16 +106,23 @@ public class BytesBuilder extends FilterOutputStream implements Builder<Bytes>, 
   }
 
 
-
-
   @Override
   public Bytes build() {
     if(closed.getAndSet(true)==false){
       call(out::close);
+      final Hash256 hash = new Hash256Imp(digest.getMessageDigest());
       if(tmpFile!=null){
-        result = new FileBackedBytesImp(tmpFile, count, hashCode, new Hash256Imp(digest.getMessageDigest()));
+        result = new FileBackedBytesImp(
+          tmpFile,
+          hashCode,
+          ( beanBuilder(HashAndSize.class)
+            .set(HashAndSize::size).to(count)
+            .set(HashAndSize::hash).to(hash)
+            .build()
+          )
+        );
       }else{
-        result = ArrayBytes.create(bos.toByteArray());
+        result = ArrayBytes.create(bos.toByteArray(), hash);
         bos = null;
       }
     }
@@ -135,7 +141,15 @@ public class BytesBuilder extends FilterOutputStream implements Builder<Bytes>, 
         FileUtils.copy(tmpFile, tmpFile2);
         return tmpFile2;
       });
-      result = new FileBackedBytesImp(newTmp, count, hashCode, new Hash256Imp(digest.getMessageDigest()));
+      result = new FileBackedBytesImp(
+        newTmp,
+        hashCode,
+        ( beanBuilder(HashAndSize.class)
+          .set(HashAndSize::size).to(count)
+          .set(HashAndSize::hash).to(new Hash256Imp(digest.getMessageDigest()))
+          .build()
+        )
+      );
     }else{
       result = ArrayBytes.create(bos.toByteArray());
       bos = null;

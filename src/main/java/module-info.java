@@ -38,6 +38,7 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.sec;
   exports com.github.gv2011.util.serviceloader;
   exports com.github.gv2011.util.streams;
+  exports com.github.gv2011.util.table;
   exports com.github.gv2011.util.tempfile;
   exports com.github.gv2011.util.time;
   exports com.github.gv2011.util.tstr;

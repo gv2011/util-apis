@@ -1,5 +1,6 @@
 package com.github.gv2011.util.log;
 
+import java.net.URI;
 import java.nio.file.Path;
 
 import com.github.gv2011.util.AutoCloseableNt;
@@ -12,5 +13,6 @@ public interface LogAdapter extends AutoCloseableNt{
 
   Opt<Path> tryGetLogFileDirectory();
 
+  Opt<URI> tryGetLogConfiguration();
 
 }

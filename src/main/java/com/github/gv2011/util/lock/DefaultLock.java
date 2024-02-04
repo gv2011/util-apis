@@ -3,16 +3,16 @@ package com.github.gv2011.util.lock;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.time.Duration;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 
 import com.github.gv2011.util.ex.Exceptions;
+import com.github.gv2011.util.ex.ThrowingFunction;
 import com.github.gv2011.util.time.Clock;
 
 class DefaultLock implements Lock{
-  
+
   private static final Logger LOG = getLogger(DefaultLock.class);
 
   private final Object internalLock = new Object();
@@ -35,7 +35,7 @@ class DefaultLock implements Lock{
   }
 
   @Override
-  public final <A, R> R apply(final A argument, final Function<A, R> operation) {
+  public final <A, R> R apply(final A argument, final ThrowingFunction<A, R> operation) {
     assert !Thread.holdsLock(this);
     synchronized(internalLock){
       return operation.apply(argument);
@@ -74,7 +74,7 @@ class DefaultLock implements Lock{
   }
 
   @Override
-  public <R> R callWhen(Supplier<Boolean> condition, Supplier<R> operation) {
+  public <R> R callWhen(final Supplier<Boolean> condition, final Supplier<R> operation) {
     assert !Thread.holdsLock(this);
     synchronized(internalLock){
       boolean first = true;

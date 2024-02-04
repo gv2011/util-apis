@@ -18,11 +18,11 @@ public interface JsonWriter {
     void writeDecimal(Decimal value);
 
     default void writeInt(final int value) {
-        writeDecimal(NumUtils.from(value));
+        writeDecimal(NumUtils.num(value));
     }
 
     default void writeLong(final long value) {
-        writeDecimal(NumUtils.from(value));
+        writeDecimal(NumUtils.num(value));
     }
 
     void beginObject();

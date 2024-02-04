@@ -28,7 +28,7 @@ public final class Constants{
    * The value of the constant must be set before it is retrieved.
    */
   public static final <T> CachedConstant<T> cachedConstant(){
-    return new CloseableConstantImp<>(()->{throw new IllegalStateException("Value has not been set.");}, t->{});
+    return new ConstantImp<>(()->{throw new IllegalStateException("Value has not been set.");});
   }
 
   /**
@@ -36,7 +36,7 @@ public final class Constants{
    * supplier is called at most once.
    */
   public static final <T> CachedConstant<T> cachedConstant(final ThrowingSupplier<? extends T> supplier){
-    return new CloseableConstantImp<>(supplier, t->{});
+    return new ConstantImp<T>(supplier);
   }
 
   /**
@@ -92,17 +92,16 @@ public final class Constants{
 
     @Override
     public final void set(final E value) {
+      final E v = ConcurrencyUtils.safePublish(()->value);
       synchronized(lock){
         final @Nullable E current = getIntern();
         if(current==null){
-          setIntern(value);
+          setIntern(v);
         }else{
-          verifyEqual(value, current);
+          verifyEqual(v, current);
         }
       }
     }
-
-
 
     protected abstract @Nullable E retrieveValue();
 
@@ -118,25 +117,57 @@ public final class Constants{
       this.supplier = supplier;
     }
     @Override
-    protected T getIntern() {
+    protected @Nullable T getIntern() {
       final @Nullable SoftReference<T> ref = this.ref;
       return ref==null?null:ref.get();
     }
     @Override
     protected void setIntern(final T value) {
-      assert Thread.holdsLock(lock);
+      assert Thread.holdsLock(lock) && value!=null;
       ref = new SoftReference<>(value);
       assert Thread.holdsLock(lock);
     }
     @Override
-    protected @Nullable T retrieveValue() {
-      return supplier.get();
+    protected T retrieveValue() {
+      final T result = supplier.get();
+      assert result!=null;
+      return result;
+    }
+  }
+
+  private static class ConstantImp<T>
+    extends AbstractCachedConstant<T> implements CachedConstant<T>
+  {
+    private T value;
+    private ThrowingSupplier<? extends T> supplier;
+    private ConstantImp(
+      final ThrowingSupplier<? extends T> supplier
+    ){
+      this.supplier = supplier;
+    }
+    @Override
+    protected void setIntern(final T value) {
+      assert this.value==null && value!=null && Thread.holdsLock(lock);
+      this.value = value;
+      supplier = null;
+    }
+    @Override
+    protected T getIntern() {
+      return value;
+    }
+    @Override
+    protected T retrieveValue() {
+      assert Thread.holdsLock(lock);
+      final T value = ConcurrencyUtils.safePublish(supplier);
+      supplier = null;
+      return value;
     }
   }
 
   private static class CloseableConstantImp<T>
-  extends AbstractCachedConstant<T> implements CloseableCachedConstant<T>{
-    private volatile T value;
+    extends AbstractCachedConstant<T> implements CloseableCachedConstant<T>
+  {
+    private T value;
     private ThrowingSupplier<? extends T> supplier;
     private volatile boolean closed = false;
     private final ThrowingConsumer<? super T> closer;
@@ -159,7 +190,7 @@ public final class Constants{
     @Override
     protected T retrieveValue() {
       assert Thread.holdsLock(lock);
-      final T value = call(supplier::getThrowing);
+      final T value = ConcurrencyUtils.safePublish(supplier);
       supplier = null;
       return value;
     }

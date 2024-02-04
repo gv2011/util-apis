@@ -56,6 +56,14 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
     return this;
   }
 
+  default void ifPresentDoOrElse(
+    final ThrowingConsumer<? super E> consumer,
+    final ThrowingRunnable defaultAction
+  ){
+    if(isPresent()) call(()->consumer.accept(get()));
+    else defaultAction.run();
+  }
+
   <U> Opt<U> flatMap(final Function<? super E, ? extends Opt<? extends U>> mapper);
 
   Opt<E> or(final Supplier<? extends Opt<? extends E>> supplier);

@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.github.gv2011</groupId>
     <artifactId>parent-gv</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>1.5</version>
   </parent>
 
   <artifactId>util-apis</artifactId>
@@ -47,8 +47,8 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -73,7 +73,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Automatic-Module-Name>com.github.gv2011.din91379</Automatic-Module-Name>
+              <Automatic-Module-Name>com.github.gv2011.util</Automatic-Module-Name>
             </manifestEntries>
           </archive>
         </configuration>

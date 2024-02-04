@@ -12,6 +12,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetEncoder;
+import static java.nio.charset.CodingErrorAction.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
@@ -58,8 +62,6 @@ public class ByteUtils {
     return ArrayBytes.create(copy);
   }
 
-
-
   public static Bytes parseHex(final String hex){
     return ArrayBytes.create(hexToByteArray(hex));
   }
@@ -97,12 +99,31 @@ public class ByteUtils {
   }
 
   public static PlainText asUtf8(final String text){
-    return new PlainTextImp(ArrayBytes.create(text.getBytes(UTF_8)));
+    return new PlainTextImp(ArrayBytes.create(toUtf8Array(text)));
+  }
+
+  private static final byte[] toUtf8Array(final String s){
+    final CharsetEncoder encoder = UTF_8.newEncoder()
+      .onMalformedInput(REPORT)
+      .onUnmappableCharacter(REPORT)
+    ;
+    return getArray(call(()->encoder.encode(CharBuffer.wrap(s))));
+  }
+
+  private static byte[] getArray(final ByteBuffer bytes){
+    boolean useOriginal = bytes.hasArray() && bytes.position()==0;
+    byte[] array = useOriginal ? bytes.array() : new byte[bytes.remaining()];
+    if(array.length!=bytes.remaining()){
+      useOriginal = false;
+      array = new byte[bytes.remaining()];
+    }
+    if(!useOriginal) bytes.get(array);
+    return array;
   }
 
   public static Hash256 hash(final String text){
     return call(()->
-      new Hash256Imp(Hash256Imp.ALGORITHM.createMessageDigest().digest(text.getBytes(UTF_8)))
+      new Hash256Imp(Hash256Imp.ALGORITHM.createMessageDigest().digest(toUtf8Array(text)))
     );
   }
 
@@ -249,6 +270,10 @@ public class ByteUtils {
 
   public static Collector<Bytes,?,Bytes> joining(){
     return new JoiningBytesCollector();
+  }
+
+  public static String toHex(final byte b) {
+    return new String(new char[] {firstHex(b), secondHex(b)});
   }
 
   public static char firstHex(final byte b) {

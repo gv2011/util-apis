@@ -158,13 +158,18 @@ public final class DataTypeImp implements DataType {
       mimeType.getPrimaryType(),
       mimeType.getSubType(),
       ( Collections.list((Enumeration<?>)mimeType.getParameters().getNames())
-        .stream().map(n->toLowerCase((String)n))
+        .stream().map(n->
+        toLowerCase((String)n)
+        )
         .collect(toISortedMap(
           name->name,
-          name->(name.equals(CHARSET_PARAMETER_NAME)
-            ? canonicalCharsetName(mimeType.getParameter(CHARSET_PARAMETER_NAME))
-            : mimeType.getParameter(name)
-          )
+          name->{
+            final String parameterValue = mimeType.getParameter(name);
+            return name.equals(CHARSET_PARAMETER_NAME)
+              ? call(()->canonicalCharsetName(parameterValue), ()->format("{} cannot be parsed as DataType.", encoded))
+              : parameterValue
+            ;
+          }
         ))
       )
     );

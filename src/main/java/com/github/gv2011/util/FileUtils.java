@@ -15,12 +15,15 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
@@ -66,11 +69,21 @@ public final class FileUtils {
   }
 
   public static Reader getReader(final String first, final String... more){
-    return call(()->Files.newBufferedReader(Paths.get(first, more), UTF_8));
+    return getReader(Paths.get(first, more));
+  }
+
+  public static Reader getReader(final Path path){
+    return call(()->new BufferedReader(new InputStreamReader(
+      Files.newInputStream(path),
+      CharsetUtils.utf8Decoder()
+    )));
   }
 
   public static Writer getWriter(final String first, final String... more){
-    return call(()->Files.newBufferedWriter(Paths.get(first, more), UTF_8));
+    return call(()->new BufferedWriter(new OutputStreamWriter(
+      Files.newOutputStream(Paths.get(first, more)),
+      CharsetUtils.utf8Encoder()
+    )));
   }
 
   public static Reader getReaderRemoveBom(final String first, final String... more){
@@ -78,12 +91,15 @@ public final class FileUtils {
   }
 
   public static Reader getReaderRemoveBom(final Path file){
-    return call(()->{
-      final BufferedReader reader = Files.newBufferedReader(file, UTF_8);
-      final int bom = reader.read();
-      verifyEqual(bom, 0xFEFF);
-      return reader;
-    });
+      final Reader reader = getReader(file);
+      try{
+        final int bom = call(()->reader.read());
+        verifyEqual(bom, 0xFEFF);
+        return reader;
+      }
+      catch(final Throwable t){
+        call(reader::close); throw t;
+      }
   }
 
   public static InputStream getStream(final String first, final String... more){
@@ -126,12 +142,17 @@ public final class FileUtils {
   }
 
   public static Optional<String> tryReadText(final Path path){
-    return call(()->{
-      try(InputStream in = Files.newInputStream(path)){
-        final Bytes bytes = ByteUtils.fromStream(in);
-        return Optional.of(bytes.utf8ToString());
-      }catch(final NoSuchFileException e){return Optional.empty();}
-    });
+    return
+      call(()->{
+        try{
+          return Optional.of(Files.newInputStream(path));
+        }
+        catch(final NoSuchFileException e){
+          return Optional.<InputStream>empty();
+        }
+      })
+      .map(in->StreamUtils.readText(()->in))
+    ;
   }
 
   public static void writeText(final String text, final String path, final String... morePathElements) {
@@ -372,7 +393,7 @@ public final class FileUtils {
     return path.toAbsolutePath().normalize().getParent().startsWith(directory.toAbsolutePath().normalize());
   }
 
-  public static Opt<Path> resolveSafely(Path file, com.github.gv2011.util.icol.Path path) {
+  public static Opt<Path> resolveSafely(final Path file, final com.github.gv2011.util.icol.Path path) {
     if(path.isEmpty()){
       return Opt.empty();
     }
@@ -384,7 +405,7 @@ public final class FileUtils {
         }
         else{
           assert !path.isEmpty();
-          return 
+          return
             resolveSafelyInternal(file, path.first())
             .flatMap(f->resolveSafely(f, path.tail()))
           ;
@@ -393,14 +414,14 @@ public final class FileUtils {
     }
   }
 
-  public static Opt<Path> resolveSafely(Path file, String child) {
+  public static Opt<Path> resolveSafely(final Path file, final String child) {
     if(!Files.isDirectory(file)) return Opt.empty();
     else{
       return resolveSafelyInternal(file, child);
     }
   }
 
-  private static Opt<Path> resolveSafelyInternal(Path dir, String child) {
+  private static Opt<Path> resolveSafelyInternal(final Path dir, final String child) {
     //Assumes Files.isDirectory(dir) has been checked.
     return child.isEmpty()
       ? Opt.of(dir)
@@ -415,8 +436,8 @@ public final class FileUtils {
     ;
   }
 
-  public static DataType getType(Path p) {
-    return DataTypeProvider.instance().dataTypeForExtension(getExtension(p));  
+  public static DataType getType(final Path p) {
+    return DataTypeProvider.instance().dataTypeForExtension(getExtension(p));
   }
 
 }

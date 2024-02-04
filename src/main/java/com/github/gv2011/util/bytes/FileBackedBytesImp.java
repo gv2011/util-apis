@@ -12,12 +12,12 @@ import com.github.gv2011.util.FileUtils;
 final class FileBackedBytesImp extends CachedFileBytes{
 
   private static final Logger LOG = getLogger(FileBackedBytesImp.class);
-  private final Hash256 hash;
+  private final HashAndSize hash;
   private final int hashCode;
   private volatile boolean closed;
 
-  FileBackedBytesImp(final Path file, final long size, final int hashCode, final Hash256 hash) {
-    super(file, 0, size);
+  FileBackedBytesImp(final Path file, final int hashCode, final HashAndSize hash) {
+    super(file, 0, hash.size());
     this.hashCode = hashCode;
     this.hash = hash;
   }
@@ -28,12 +28,7 @@ final class FileBackedBytesImp extends CachedFileBytes{
   }
 
   @Override
-  public Hash256 hash() {
-    return hash;
-  }
-
-  @Override
-  protected Hash256 hashImp() {
+  protected HashAndSize hashImp() {
     return hash;
   }
 

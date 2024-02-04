@@ -37,8 +37,10 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Spliterator;
@@ -66,9 +68,7 @@ public final class ServiceProviderConfigurationFile<S> {
     return
       StreamSupport.stream(
         Spliterators.spliteratorUnknownSize(
-          LegacyCollections.asIterator(
-            Thread.currentThread().getContextClassLoader().getResources("META-INF/services/"+service.getName())
-          ),
+          getResources(service),
           Spliterator.ORDERED
         ),
         false
@@ -78,6 +78,18 @@ public final class ServiceProviderConfigurationFile<S> {
         catch (final IOException e) {throw new RuntimeException(e);}
       })
     ;
+  }
+
+
+  private static <S> Iterator<URL> getResources(final Class<S> service) throws IOException {
+    final String name = "META-INF/services/"+service.getName();
+    final Iterator<URL> it = LegacyCollections.asIterator(
+      Thread.currentThread().getContextClassLoader().getResources(name)
+    );
+    final List<URL> list = new ArrayList<>();
+    while(it.hasNext()) list.add(it.next());
+    return list.iterator();
+//    return it;
   }
 
   private final Class<S> service;

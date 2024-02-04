@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
+import com.github.gv2011.util.HashAlgorithm;
 import com.github.gv2011.util.OptCloseable;
 import com.github.gv2011.util.Pair;
 import com.github.gv2011.util.ann.Immutable;
@@ -31,7 +32,13 @@ public interface Bytes extends List<Byte>, Comparable<Bytes>, OptCloseable{
 
   int getUnsigned(long index);
 
-  Hash256 hash();
+  default Hash256 hash(){
+    return hashAndSize().hash();
+  }
+
+  HashAndSize hashAndSize();
+
+  Hash hash(HashAlgorithm hashAlgorithm);
 
   Optional<Long> indexOfOther(Bytes other);
 
@@ -100,4 +107,5 @@ public interface Bytes extends List<Byte>, Comparable<Bytes>, OptCloseable{
   ByteBuffer toBuffer(long offset, int size);
 
   int write(final ByteBuffer buffer, final long offset);
+
 }

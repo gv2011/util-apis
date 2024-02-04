@@ -6,8 +6,10 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,6 +19,8 @@ import com.github.gv2011.util.icol.Opt;
 public class TimeUtils {
 
   public static final double HOUR = toSeconds(Duration.ofHours(1));
+
+  public static final DateTimeFormatter DIN_1355_1_DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY);
 
   private static final Pattern HOURS = Pattern.compile("(-?\\d+)(:([0-5]\\d)(:(([0-5]\\d)([,\\.](\\d+))?))?)?");
   private static final long NANOS_PER_SECOND = Duration.ofSeconds(1).toNanos();

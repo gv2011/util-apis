@@ -1,14 +1,16 @@
 package com.github.gv2011.util.ex;
 
 import static com.github.gv2011.util.icol.ICollections.asList;
-import static com.github.gv2011.util.icol.ICollections.toIList;
+import static com.github.gv2011.util.icol.ICollections.iCollections;
 import static com.github.gv2011.util.icol.ICollections.nothing;
+import static com.github.gv2011.util.icol.ICollections.toIList;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import com.github.gv2011.util.OptCloseable;
 import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.icol.Nothing;
+import com.github.gv2011.util.icol.Opt;
 
 public final class Exceptions {
 
@@ -48,6 +51,10 @@ public final class Exceptions {
 
   public static <T> T notYetImplemented(final String msg){
     throw notYetImplementedException(msg);
+  }
+
+  public static <T> T illegalArgument(final @Nullable Object arg){
+    throw new IllegalArgumentException(String.valueOf(arg));
   }
 
   public static RuntimeException bug(){
@@ -97,11 +104,22 @@ public final class Exceptions {
   }
 
   public static <R> R call(final ThrowingSupplier<R> throwing, final Supplier<?> message){
-    return throwing.asFunction().apply(null);
+    return throwing.asFunction(message).apply(null);
   }
 
   public static <R> R call(final ThrowingSupplier<R> throwing){
     return throwing.asFunction().apply(null);
+  }
+
+  public static <R> Opt<R> tryCall(final ThrowingSupplier<R> throwing){
+    final Function<Object, R> f = throwing.asFunction();
+    final R result;
+    try {
+      result = f.apply(null);
+    } catch (final Exception e) {
+      return iCollections().empty();
+    }
+    return iCollections().single(result);
   }
 
   public static Nothing call(final ThrowingRunnable throwing){

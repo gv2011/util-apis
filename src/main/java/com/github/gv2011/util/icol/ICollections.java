@@ -337,6 +337,10 @@ public final class ICollections {
 
   //Other:
 
+  public static <E> IList<E> filledList(final E element, final int size){
+    return iCollections().filledList(element, size);
+  }
+
   public static Path emptyPath() {
     return iCollections().emptyPath();
   }

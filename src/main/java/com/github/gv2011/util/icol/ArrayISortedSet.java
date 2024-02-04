@@ -75,6 +75,12 @@ public final class ArrayISortedSet<E extends Comparable<? super E>> extends Abst
   }
 
   @Override
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public XStream<E> parallelStream() {
+    return (XStream) XStream.ofArray(elements, true);
+  }
+
+  @Override
   public XStream<E> descendingStream() {
     final int l = elements.length;
     IntStream.range(1, l-1).map(i->l-i).mapToObj(i->elements[i]);

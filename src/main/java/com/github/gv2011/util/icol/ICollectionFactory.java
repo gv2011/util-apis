@@ -232,6 +232,8 @@ public interface ICollectionFactory {
 
   //Other:
 
+  <E> IList<E> filledList(E element, int size);
+
   Path emptyPath();
 
   Path pathFrom(final Collection<String> collection);
@@ -247,6 +249,5 @@ public interface ICollectionFactory {
     final Function<? super V,? extends K> key,
     final BinaryOperator<V> mergeFunction
   );
-
 
 }

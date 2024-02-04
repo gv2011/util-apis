@@ -1,24 +1,33 @@
 package com.github.gv2011.util;
 
+import static com.github.gv2011.util.CollectionUtils.collectToString;
 import static com.github.gv2011.util.CollectionUtils.toSortedSet;
 import static com.github.gv2011.util.Verify.verify;
+import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.icol.ICollections.listBuilder;
 import static com.github.gv2011.util.icol.ICollections.toIList;
 import static java.util.function.Predicate.not;
 
+import java.io.Reader;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Random;
 import java.util.SortedSet;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import com.github.gv2011.util.bytes.ByteUtils;
+import com.github.gv2011.util.bytes.TypedBytes;
+import com.github.gv2011.util.ex.ThrowingSupplier;
 import com.github.gv2011.util.icol.ICollections;
 import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.icol.IList.Builder;
 import com.github.gv2011.util.icol.Opt;
+import com.github.gv2011.util.uc.SetOfChars;
 
 public final class StringUtils {
 
@@ -192,6 +201,27 @@ public final class StringUtils {
 
   public static boolean isLowerCase(final String s) {
     return toLowerCase(s).equals(s);
+  }
+
+  public static final TypedBytes toUtf8(final String s){
+    return ByteUtils.asUtf8(s);
+  }
+
+  public static final String read(final ThrowingSupplier<Reader> reader){
+    return callWithCloseable(reader, r->{
+      final StringWriter sw = new StringWriter();
+      r.transferTo(sw);
+      return sw.toString();
+    });
+  }
+
+  public static final String randomString(final Random random, final int cpLength){
+    final SetOfChars selection = SetOfChars.Selection.SIMPLE_LATIN.set();
+    return collectToString(
+      random.ints(0, Character.MAX_CODE_POINT+1)
+      .filter(selection::containsChar)
+      .limit(cpLength)
+    );
   }
 
 }

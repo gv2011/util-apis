@@ -32,10 +32,12 @@ public enum HashAlgorithm {
 
   private final String algorithmName;
   private final DataType dataType;
+  private final int size;
 
   private HashAlgorithm(final String algorithmName){
     this.algorithmName = algorithmName;
     dataType = DataTypeImp.parse(DataTypes.APPLICATION+"/x-"+StringUtils.toLowerCase(algorithmName.replace('/','-')));
+    size = createMessageDigest().getDigestLength();
   }
 
 
@@ -45,6 +47,10 @@ public enum HashAlgorithm {
 
   public DataType getDataType() {
     return dataType;
+  }
+
+  public int getSize() {
+    return size;
   }
 
   @Override

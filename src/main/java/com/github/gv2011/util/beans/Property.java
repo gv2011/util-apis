@@ -12,4 +12,6 @@ public interface Property<V> {
 
     Opt<V> fixedValue();
 
+    boolean isKey();
+
 }

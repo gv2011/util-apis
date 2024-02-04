@@ -63,15 +63,15 @@ public interface JsonFactory {
   JsonNumber primitive(Decimal number);
 
   default JsonNumber primitive(final int i){
-    return primitive(NumUtils.from(i));
+    return primitive(NumUtils.num(i));
   }
 
   default JsonNumber primitive(final long i){
-    return primitive(NumUtils.from(i));
+    return primitive(NumUtils.num(i));
   }
 
   default JsonNumber primitive(final BigDecimal d){
-    return primitive(NumUtils.from(d));
+    return primitive(NumUtils.num(d));
   }
 
   JsonBoolean primitive(boolean b);

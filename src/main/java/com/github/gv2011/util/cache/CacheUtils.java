@@ -21,6 +21,10 @@ public final class CacheUtils {
     return new SoftRefCache<>(supplier)::get;
   }
 
+  public static <K,V> Function<K,V> cachedFunction(final Function<K,V> f){
+    return new CachedFunction<K,V>(f);
+  }
+
   public static <K,V> SoftIndex<K,V> softIndex(final Function<K,Opt<? extends V>> constantFunction){
     return new SoftIndexImp<>(constantFunction, p->nothing());
   }

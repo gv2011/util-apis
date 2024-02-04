@@ -3,12 +3,12 @@ package com.github.gv2011.util;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.function.IntConsumer;
 
@@ -33,7 +33,7 @@ public final class StreamUtils {
   }
 
   public static String readText(final ThrowingSupplier<InputStream> in){
-    return new String(readAndClose(in), UTF_8);
+    return StringUtils.read(()->new InputStreamReader(in.get(), CharsetUtils.utf8Decoder()));
   }
 
   public static byte[] readAndClose(final ThrowingSupplier<InputStream> in){
@@ -137,5 +137,4 @@ public final class StreamUtils {
       }
     };
   }
-
 }

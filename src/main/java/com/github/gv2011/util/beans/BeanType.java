@@ -18,4 +18,6 @@ public interface BeanType<T> extends Type<T>{
 
     String toString(T bean);
 
+    boolean isKeyBean();
+
 }

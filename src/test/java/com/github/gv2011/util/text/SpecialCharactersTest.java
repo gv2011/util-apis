@@ -2,7 +2,8 @@ package com.github.gv2011.util.text;
 
 import java.util.Arrays;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 
 public class SpecialCharactersTest {
 

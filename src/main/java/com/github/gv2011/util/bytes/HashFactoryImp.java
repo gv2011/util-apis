@@ -19,21 +19,15 @@ import com.github.gv2011.util.ex.ThrowingSupplier;
 public class HashFactoryImp implements HashFactory {
 
   @Override
-  public TypedBytes hash(final HashAlgorithm algorithm, final ThrowingSupplier<InputStream> input){
+  public Hash hash(final HashAlgorithm algorithm, final ThrowingSupplier<InputStream> input){
     return callWithCloseable(input, in->{
       final MessageDigest md = algorithm.createMessageDigest();
       final DigestInputStream dis = new DigestInputStream(in, md);
       StreamUtils.count(dis);
-      final Bytes hash = ByteUtils.newBytes(md.digest());
       if(algorithm.equals(Hash256.ALGORITHM)){
         return new Hash256Imp(md);
       }
-      else return new AbstractTypedBytes(){
-        @Override
-        public Bytes content() {return hash;}
-        @Override
-        public DataType dataType() {return algorithm.getDataType();}
-      };
+      else return new HashImp(algorithm, md);
     });
   }
 
@@ -47,7 +41,7 @@ public class HashFactoryImp implements HashFactory {
   }
 
   private HashAndSize hashAndSize(final MessageDigest md, final long size) {
-    return (HashAndSize) BeanUtils.beanBuilder(HashAndSize.class)
+    return BeanUtils.beanBuilder(HashAndSize.class)
       .set(HashAndSize::size).to(size)
       .set(HashAndSize::hash).to(new Hash256Imp(md))
       .build()
@@ -81,5 +75,30 @@ public class HashFactoryImp implements HashFactory {
   }
 
 
+  static final class HashImp extends AbstractTypedBytes implements Hash{
+
+    private final Bytes content;
+    private final HashAlgorithm algorithm;
+
+    HashImp(final HashAlgorithm algorithm, final MessageDigest md) {
+      this(algorithm, ArrayBytes.create(md.digest()));
+    }
+
+    private HashImp(final HashAlgorithm algorithm, final Bytes content) {
+      if(content.longSize()!=(long)algorithm.getSize()) throw new IllegalArgumentException("Length is "+content.longSize());
+      this.algorithm = algorithm;
+      this.content = content;
+    }
+
+    @Override
+    public Bytes content() {
+      return content;
+    }
+
+    @Override
+    public HashAlgorithm algorithm() {
+      return algorithm;
+    }
+  }
 
 }

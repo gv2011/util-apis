@@ -24,6 +24,8 @@ public interface IList<E> extends List<E>, ICollectionG<E,IList<E>>, ListAccess<
 
     E set(int index, E element);
 
+    void insert(int index, E element);
+
     default E getLast(){return get(size()-1);}
 
     default E setLast(final E element){return set(size()-1, element);}
@@ -116,7 +118,7 @@ public interface IList<E> extends List<E>, ICollectionG<E,IList<E>>, ListAccess<
   default boolean isEmpty(){
     return size()==0;
   }
-  
+
   @Override
   default IList<E> tail(){
     return subList(1, size());

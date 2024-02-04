@@ -6,9 +6,14 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
+import com.github.gv2011.util.bytes.Hash256;
+import com.github.gv2011.util.icol.Opt;
+
 public interface DbSet<B> extends Collection<B>{
 
   long longSize();
+
+  Opt<B> tryGet(Hash256 hash);
 
   @Override
   default int size() {

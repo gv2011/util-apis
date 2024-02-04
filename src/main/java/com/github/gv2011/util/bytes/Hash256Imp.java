@@ -19,9 +19,10 @@ final class Hash256Imp extends AbstractTypedBytes implements Hash256{
     content = bytes;
   }
 
-  protected String toStringImp() {
-    return content.toHexColon();
-  }
+//  TODO: ???
+//  protected String toStringImp() {
+//    return content.toHexColon();
+//  }
 
   @Override
   public Bytes content() {

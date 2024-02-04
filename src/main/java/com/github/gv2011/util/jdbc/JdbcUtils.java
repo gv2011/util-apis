@@ -1,6 +1,8 @@
 package com.github.gv2011.util.jdbc;
 
+import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
+import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.icol.ICollections.toIList;
 
@@ -8,18 +10,22 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.github.gv2011.util.CloseHolder;
 import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.Constants;
 import com.github.gv2011.util.ServiceLoaderUtils;
 import com.github.gv2011.util.ex.ThrowingConsumer;
 import com.github.gv2011.util.ex.ThrowingFunction;
+import com.github.gv2011.util.ex.ThrowingSupplier;
 import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.icol.Opt;
+import com.github.gv2011.util.lock.Lock;
 import com.github.gv2011.util.table.Table;
 import com.github.gv2011.util.table.Tables;
 
@@ -38,17 +44,57 @@ public final class JdbcUtils {
   }
 
   public static <T> Stream<T> stream(final ResultSet rs, final ThrowingFunction<ResultSet, T> extractor) {
-    return call(rs::next)
+    final Lock lock = Lock.create();
+    return lock.call(rs::next)
       ?(
         Stream.iterate(
-          (Opt<T>) Opt.of(extractor.apply(rs)),
+          lock.call(()->(Opt<T>) Opt.of(extractor.apply(rs))),
           Opt::isPresent,
-          h->call(rs::next) ? Opt.of(extractor.apply(rs)) : Opt.empty()
+          h->lock.call(()->rs.next() ? Opt.of(extractor.apply(rs)) : Opt.empty())
         )
         .map(Opt::get)
-        .onClose(()->call(rs::close))
+        .onClose(()->lock.call(rs::close))
       )
-      : call(()->{rs.close(); return Stream.empty();})
+      : lock.call(()->{rs.close(); return Stream.empty();})
+    ;
+  }
+
+  public static <T> T executeQuery(
+      final ThrowingSupplier<CloseHolder<Connection>> connectionSource,
+      final String sql,
+      final ThrowingFunction<ResultSet,T> resultSetHandler
+  ){
+    return callWithCloseable(connectionSource, cn->{
+      try(PreparedStatement stmt = cn.get().prepareStatement(sql)){
+        try(ResultSet rs = stmt.executeQuery()){
+          return resultSetHandler.apply(rs);
+        }
+      }
+    });
+  }
+
+
+  public static boolean execute(
+    final Connection cn,
+    final String sql
+  ) {
+    return callWithCloseable(cn::createStatement, stmt->(Boolean)stmt.execute(sql));
+  }
+
+  public static <T> T executeSingle(
+    final Connection cn,
+    final String sql,
+    final ThrowingFunction<ResultSet, T> extractor
+  ) {
+    final AtomicBoolean done = new AtomicBoolean();
+    return executeQuery(
+        cn, sql, s->{},
+        rs->{
+          verify(!done.getAndSet(true));
+          return extractor.apply(rs);
+        }
+      )
+      .findAny().orElseThrow()
     ;
   }
 
@@ -104,7 +150,7 @@ public final class JdbcUtils {
       final IList<IList<String>> rows =
         stream(
           rs,
-          r->toList(rs, r2->colCount, (r2,c)->call(()->r2.getString(c)), s->s)
+          r->toList(rs, r2->colCount, (r2,c)->call(()->Opt.ofNullable(r2.getString(c)).orElse("")), s->s)
         )
         .collect(toIList())
       ;

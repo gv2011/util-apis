@@ -25,7 +25,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
-import java.security.MessageDigest;
 import java.util.AbstractList;
 import java.util.Base64;
 import java.util.EnumSet;
@@ -39,7 +38,10 @@ import org.slf4j.Logger;
 
 import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.Constants;
+import com.github.gv2011.util.HashAlgorithm;
+import com.github.gv2011.util.HashUtils;
 import com.github.gv2011.util.Pair;
+import com.github.gv2011.util.StreamUtils;
 import com.github.gv2011.util.ann.Immutable;
 import com.github.gv2011.util.num.NumUtils;
 import com.github.gv2011.util.uc.UChars;
@@ -53,7 +55,7 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
 
   private final Constant<Integer> hashCodeCache = Constants.cachedConstant(super::hashCode);
   private final Constant<String> toStringCache = Constants.softRefConstant(this::toStringImp);
-  private final Constant<Hash256> hashCache = Constants.cachedConstant(this::hashImp);
+  private final Constant<HashAndSize> hashCache = Constants.cachedConstant(this::hashImp);
 
 
   @Override
@@ -176,8 +178,8 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
   }
 
   @Override
-  public String utf8ToString() throws TooBigException {
-    return new String(toByteArray(), UTF_8);
+  public final String utf8ToString() throws TooBigException {
+    return StreamUtils.readText(this::openStream);
   }
 
 
@@ -193,12 +195,20 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
 
 
   @Override
-  public Hash256 hash() {
+  public final Hash256 hash() {
+    return hashAndSize().hash();
+  }
+
+  @Override
+  public final HashAndSize hashAndSize() {
     return hashCache.get();
   }
 
-
-
+  @Override
+  public final Hash hash(final HashAlgorithm hashAlgorithm) {
+    checkNotClosed();
+    return HashUtils.hash(hashAlgorithm, this::openStream);
+  }
 
   @Override
   public boolean equals(final Object o) {
@@ -228,13 +238,10 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
     return result;
   }
 
-  protected Hash256 hashImp() {
+  protected HashAndSize hashImp() {
     checkNotClosed();
-    final MessageDigest md = call(()->Hash256.ALGORITHM.createMessageDigest());
-    for(final byte b:this) md.update(b);
-    return new Hash256Imp(md);
+    return HashUtils.hash256(this::openStream, OutputStream.nullOutputStream());
   }
-
 
 
   @Override
