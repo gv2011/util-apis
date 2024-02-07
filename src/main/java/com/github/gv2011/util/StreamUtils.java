@@ -3,15 +3,27 @@ package com.github.gv2011.util;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Spliterator.IMMUTABLE;
+import static java.util.Spliterator.NONNULL;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Spliterators;
 import java.util.function.IntConsumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
+import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.ex.ThrowingSupplier;
 
 public final class StreamUtils {
@@ -34,6 +46,31 @@ public final class StreamUtils {
 
   public static String readText(final ThrowingSupplier<InputStream> in){
     return StringUtils.read(()->new InputStreamReader(in.get(), CharsetUtils.utf8Decoder()));
+  }
+
+  public static Iterator<String> asIterator(final BufferedReader reader){
+    return new Iterator<>(){
+      private @Nullable String next = call(reader::readLine);
+      @Override
+      public boolean hasNext() {
+        return next!=null;
+      }
+      @Override
+      public String next() {
+        if(next==null) throw new NoSuchElementException();
+        final String result = next;
+        next = call(reader::readLine);
+        return result;
+      }
+    };
+  }
+
+  public static Stream<String> readLines(final InputStream in){
+    final BufferedReader reader = new BufferedReader(new InputStreamReader(in, CharsetUtils.utf8Decoder()));
+    return StreamSupport
+      .stream(Spliterators.spliteratorUnknownSize(asIterator(reader), IMMUTABLE | NONNULL), false)
+      .onClose(()->call(reader::close))
+    ;
   }
 
   public static byte[] readAndClose(final ThrowingSupplier<InputStream> in){
@@ -136,5 +173,13 @@ public final class StreamUtils {
         in.close();
       }
     };
+  }
+
+  public static final InputStream asStream(final Reader reader){
+    return asStream(reader, UTF_8);
+  }
+
+  public static final InputStream asStream(final Reader reader, final Charset charset){
+    return new ReaderInputStream(reader, charset);
   }
 }

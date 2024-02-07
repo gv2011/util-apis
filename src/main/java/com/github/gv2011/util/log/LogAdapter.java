@@ -3,6 +3,8 @@ package com.github.gv2011.util.log;
 import java.net.URI;
 import java.nio.file.Path;
 
+import org.slf4j.ILoggerFactory;
+
 import com.github.gv2011.util.AutoCloseableNt;
 import com.github.gv2011.util.icol.Opt;
 
@@ -14,5 +16,7 @@ public interface LogAdapter extends AutoCloseableNt{
   Opt<Path> tryGetLogFileDirectory();
 
   Opt<URI> tryGetLogConfiguration();
+
+  ILoggerFactory loggerFactory();
 
 }

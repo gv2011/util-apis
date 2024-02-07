@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 import com.github.gv2011.util.XStream;
 
 public interface ListAccess<E> {
-  
+
   default boolean isEmpty(){
     return size()==0;
   }
@@ -53,7 +53,7 @@ public interface ListAccess<E> {
   default int lastIndexOfElement(final E element) {
     return lastIndexOf(element);
   }
-  
+
   default E last(){
     if(isEmpty()) throw new NoSuchElementException();
     else return get(size()-1);

@@ -8,18 +8,20 @@ import com.github.gv2011.util.icol.ISortedMap;
 import com.github.gv2011.util.sec.Domain;
 
 public interface Request extends HttpMessage, Bean{
-  
+
   Domain host();
-  
+
   Boolean secure();
-  
+
   IList<X509Certificate> peerCertificateChain();
 
   Method method();
 
   //TODO: replace with Path
   IList<String> path();
-  
+
   ISortedMap<String, IList<String>> parameters();
+
+  ISortedMap<String,IList<String>> headers();
 
 }

@@ -9,6 +9,8 @@ module com.github.gv2011.util{
   requires transitive jakarta.activation;
   requires transitive java.sql;
 
+  requires com.google.common;
+
   uses com.github.gv2011.util.icol.ICollectionFactorySupplier;
   uses com.github.gv2011.util.beans.TypeRegistry;
   uses com.github.gv2011.util.json.JsonFactory;

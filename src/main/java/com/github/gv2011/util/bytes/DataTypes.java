@@ -15,7 +15,9 @@ public final class DataTypes {
 
   public static final String APPLICATION = "application";
   public static final String OCTET_STREAM = "octet-stream";
+  public static final String JSON = "json";
   public static final DataType APPLICATION_OCTET_STREAM = parse(APPLICATION+"/"+OCTET_STREAM);
+  public static final DataType APPLICATION_JSON = parse(APPLICATION+"/"+JSON);
 
   public static final String TEXT = "text";
   public static final String PLAIN = "plain";

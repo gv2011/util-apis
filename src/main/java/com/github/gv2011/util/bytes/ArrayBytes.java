@@ -1,6 +1,5 @@
 package com.github.gv2011.util.bytes;
 
-import static com.github.gv2011.util.BeanUtils.beanBuilder;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.call;
 
@@ -90,13 +89,7 @@ class ArrayBytes extends AbstractBytes{
 
   @Override
   protected HashAndSize hashImp() {
-    return hash==null ? super.hashImp()
-      :(beanBuilder(HashAndSize.class)
-        .set(HashAndSize::size).to((long)size())
-        .set(HashAndSize::hash).to(hash)
-        .build()
-      )
-    ;
+    return hash==null ? super.hashImp() : new HashAndSizeImp(hash, longSize());
   }
 
   @Override

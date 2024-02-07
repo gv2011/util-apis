@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,6 +133,11 @@ public final class FileUtils {
       .orElseThrow(()->new NoSuchElementException(format("File {} does not exist.", path.toAbsolutePath())))
     ;
   }
+
+  public static Stream<String> readLines(final Path path) {
+    return StreamUtils.readLines(call(()->Files.newInputStream(path)));
+  }
+
 
   public static Reader reader(final Path path){
     return call(()->Files.newBufferedReader(path, UTF_8));
