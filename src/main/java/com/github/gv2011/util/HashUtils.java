@@ -31,5 +31,4 @@ public final class HashUtils {
   public static HashBuilder hashBuilder() {
     return HashFactory.INSTANCE.get().hashBuilder();
   }
-
 }

@@ -7,6 +7,8 @@ public interface M2tFactory {
 
   public static final Constant<M2tFactory> INSTANCE = RecursiveServiceLoader.lazyService(M2tFactory.class);
 
+  ArtifactRef parse(String encoded);
+
   M2t create();
 
 }

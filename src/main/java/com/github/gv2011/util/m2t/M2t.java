@@ -8,6 +8,8 @@ import com.github.gv2011.util.icol.ISortedSet;
 
 public interface M2t extends AutoCloseableNt{
 
+  ArtifactRef parse(String encoded);
+
   Path resolve(ArtifactRef artifact);
 
   /**

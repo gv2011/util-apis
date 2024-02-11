@@ -47,6 +47,7 @@ import com.github.gv2011.util.bytes.Bytes;
 import com.github.gv2011.util.bytes.DataType;
 import com.github.gv2011.util.bytes.DataTypeProvider;
 import com.github.gv2011.util.bytes.FileExtension;
+import com.github.gv2011.util.bytes.HashAndSize;
 import com.github.gv2011.util.ex.ThrowingFunction;
 import com.github.gv2011.util.ex.ThrowingSupplier;
 import com.github.gv2011.util.icol.Opt;
@@ -138,6 +139,11 @@ public final class FileUtils {
     return StreamUtils.readLines(call(()->Files.newInputStream(path)));
   }
 
+  public static final HashAndSize hash(final Path file){
+    final Bytes b = ByteUtils.read(file);
+    try{return b.hashAndSize();}
+    finally{b.close();}
+  }
 
   public static Reader reader(final Path path){
     return call(()->Files.newBufferedReader(path, UTF_8));
@@ -208,6 +214,14 @@ public final class FileUtils {
     final String n = fileName.toString();
     final int i = n.lastIndexOf('.');
     return i==-1?n:n.substring(0, i);
+  }
+
+  public static Path withoutExtension(final Path path){
+    return Opt
+      .ofNullable(path.getParent())
+      .map(parent->parent.resolve(removeExtension(path)))
+      .orElseGet(()->Paths.get(removeExtension(path)))
+    ;
   }
 
   public static FileExtension getExtension(final Path path){

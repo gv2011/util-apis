@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.github.gv2011</groupId>
     <artifactId>parent-gv</artifactId>
-    <version>1.5</version>
+    <version>1.6</version>
   </parent>
 
   <artifactId>util-apis</artifactId>
@@ -39,7 +39,7 @@
     <url>https://github.com/gv2011/util-apis</url>
     <tag>HEAD</tag>
   </scm>
-
+  
   <dependencies>
     <dependency>
       <groupId>jakarta.activation</groupId>

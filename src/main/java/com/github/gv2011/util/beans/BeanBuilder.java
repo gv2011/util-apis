@@ -18,12 +18,16 @@ public interface BeanBuilder<T> {
 
     <V extends TypedString<V>> Setter<T,String> setTStr(final Function<T,V> method);
 
+    default <V extends TypedString<V>> BeanBuilder<T> set(final Function<T,V> method, final String s){
+      return setTStr(method).to(s);
+    }
+
     BeanBuilder<T> setAll(T bean);
 
     BeanBuilder<T> setProperties(T bean, ICollection<Function<T,?>> methods);
 
     public interface Setter<T,V> {
       BeanBuilder<T> to(V value);
-    }
+     }
 
 }

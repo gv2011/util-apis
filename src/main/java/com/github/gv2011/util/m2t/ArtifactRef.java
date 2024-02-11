@@ -16,4 +16,20 @@ public interface ArtifactRef extends Bean{
 
   Type type();
 
+
+  /**
+   * see <a href="https://maven.apache.org/plugins/maven-dependency-plugin/copy-mojo.html">dependency
+   * plugin copy target</a>
+   */
+  static String toString(final ArtifactRef r){
+    final Classifier cl = r.classifier();
+    final Type type = r.type();
+    return r.groupId()+":"+r.artifactId()+":"+r.version()+
+      (cl.isEmpty()
+        ? (type.toString().equals("jar") ? "" : ":"+r.type())
+        :":"+r.type()+":"+cl
+      )
+     ;
+  }
+
 }

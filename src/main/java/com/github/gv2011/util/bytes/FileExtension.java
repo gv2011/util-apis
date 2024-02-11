@@ -10,17 +10,16 @@ import com.github.gv2011.util.tstr.AbstractTypedString;
 public final class FileExtension extends AbstractTypedString<FileExtension>{
 
   private static final Pattern PATTERN = Pattern.compile("\\w[\\-\\w\\.\\+]*");
-  
+
   public static final FileExtension EMPTY = new FileExtension("");
 
   private final String extension;
-  
-  public static FileExtension parse(String extension) {
+
+  public static FileExtension parse(final String extension) {
     return extension.isEmpty() ? EMPTY : new FileExtension(extension);
   }
 
-  @Deprecated//use parse
-  public FileExtension(final String extension) {
+  private FileExtension(final String extension) {
     if(!extension.isEmpty()){
       verify(extension, StringUtils::isLowerCase);
       verify(extension, e->PATTERN.matcher(e).matches());
