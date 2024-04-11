@@ -30,7 +30,6 @@ import static com.github.gv2011.util.icol.ICollections.listBuilder;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Comparator;
-import java.util.Map.Entry;
 
 import com.github.gv2011.util.icol.IList;
 
@@ -38,11 +37,6 @@ public final class Pair<K,V> extends SimpleEntry<K,V>{
 
   public static final <K,V> PairListBuilder<K,V> pairListBuilder(){
     return new PairListBuilder<>();
-  }
-
-  @Deprecated //TODO
-  public Pair(final Entry<? extends K, ? extends V> entry) {
-    super(entry);
   }
 
   Pair(final K key, final V value) {

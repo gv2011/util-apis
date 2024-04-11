@@ -8,7 +8,8 @@ module com.github.gv2011.util{
   requires transitive java.naming;
   requires transitive jakarta.activation;
   requires transitive java.sql;
-
+  requires transitive java.desktop;
+  
   requires com.google.common;
 
   uses com.github.gv2011.util.icol.ICollectionFactorySupplier;
@@ -40,6 +41,7 @@ module com.github.gv2011.util{
   exports com.github.gv2011.util.sec;
   exports com.github.gv2011.util.serviceloader;
   exports com.github.gv2011.util.streams;
+  exports com.github.gv2011.util.swing;
   exports com.github.gv2011.util.table;
   exports com.github.gv2011.util.tempfile;
   exports com.github.gv2011.util.time;

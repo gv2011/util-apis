@@ -197,7 +197,7 @@ public class ByteUtils {
     }
   }
 
-  public static Bytes collectBytes(final IntStream intStream) {
+public static Bytes collectBytes(final IntStream intStream) {
     return intStream
       .collect(BytesBuilder::new, BytesBuilder::write, (b1,b2)->b1.append(b2.build()))
       .build()

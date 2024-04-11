@@ -111,6 +111,10 @@ public final class NumUtils {
     return (int)l;
   }
 
+  public static int safeAdd(final int i1, final int i2) {
+    return toInt(((long)i1)+((long)i2));
+  }
+
   public static IntStream stream(final int i) {
     return IntStream.range(0, i);
   }

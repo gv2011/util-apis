@@ -50,6 +50,7 @@ public interface TypedString<T extends TypedString<T>> extends CharSequence, Com
 
   Class<T> clazz();
 
+  @Override
   default boolean isEmpty() {
       return canonical().isEmpty();
   }

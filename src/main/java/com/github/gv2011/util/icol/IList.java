@@ -18,6 +18,7 @@ public interface IList<E> extends List<E>, ICollectionG<E,IList<E>>, ListAccess<
 
   public static interface Builder<E> extends CollectionBuilder<IList<E>,E,Builder<E>>{
 
+    @Override
     int size();
 
     E get(int index);

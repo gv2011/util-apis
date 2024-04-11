@@ -57,6 +57,10 @@ public final class Exceptions {
     throw new IllegalArgumentException(String.valueOf(arg));
   }
 
+  public static <T> T unsupported(){
+    throw new UnsupportedOperationException();
+  }
+
   public static RuntimeException bug(){
     return new Bug();
   }
