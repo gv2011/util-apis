@@ -6,6 +6,6 @@ public interface HtmlBuilder extends Builder<HtmlDocument>, BlockBuilder{
 
   HtmlBuilder setTitle(String title);
 
-
+  HtmlBuilder setStyle(String style);
 
 }

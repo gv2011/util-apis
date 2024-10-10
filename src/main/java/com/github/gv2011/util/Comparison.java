@@ -88,6 +88,18 @@ public final class Comparison {
     return c1.compareTo(c2)>=0;
   }
 
+  public static <T, C extends Comparable<? super C>> Comparator<T> comparing(
+    final Function<? super T, ? extends C> keyExtractor
+  ){
+    return Comparator.comparing(keyExtractor);
+  }
+
+  public static <T, C extends Comparable<? super C>> Comparator<T> comparingOpt(
+    final Function<T, Opt<C>> keyExtractor)
+  {
+    return Comparator.comparing(keyExtractor, optComparator());
+  }
+
 
   @SuppressWarnings("unchecked")
   public static <C extends Comparable<? super C>> Comparator<Opt<C>> optComparator(){

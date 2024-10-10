@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 import com.github.gv2011.util.icol.ICollection;
 import com.github.gv2011.util.icol.ICollections;
 import com.github.gv2011.util.icol.IList;
+import com.github.gv2011.util.icol.IMap;
 import com.github.gv2011.util.icol.ISet;
 import com.github.gv2011.util.icol.ISortedMap;
 import com.github.gv2011.util.icol.Opt;
@@ -202,6 +203,13 @@ public final class CollectionUtils {
       throw new NoSuchElementException(format("Map contains no element with key {}.", key));
     }
     return result;
+  }
+
+  public static <K,V> V putAbsent(final Map<K,? super V> map, final K key, final V value){
+    if(map.putIfAbsent(key, value) != null) {
+      throw new IllegalArgumentException(format("Map already contains an element with key {}.", key));
+    }
+    return value;
   }
 
   public static IntStream intRange(final int startInclusive, final int endExclusive){
@@ -387,16 +395,6 @@ public final class CollectionUtils {
     };
   }
 
-  @Deprecated
-  public static <T> Collector<T,?,Optional<T>> toOptional(){
-    return new OptCollector<>(){
-      @Override
-      public Function<AtomicReference<T>, Optional<T>> finisher() {
-        return r->Optional.ofNullable(r.get());
-      }
-    };
-  }
-
   public static <T> Optional<T> toOptional(final Opt<? extends T> opt){
     return opt.isPresent() ? Optional.of(opt.get()) : Optional.empty();
   }
@@ -453,8 +451,9 @@ public final class CollectionUtils {
     };
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public static <V> Opt<V> tryGet(final Map<?,? extends V> map, final Object key){
-    return Opt.ofNullable(map.get(key));
+    return IMap.class.isInstance(map) ? ((IMap)map).tryGet(key) : Opt.ofNullable(map.get(key));
   }
 
   public static String collectToString(final IntStream codepoints){
@@ -468,6 +467,10 @@ public final class CollectionUtils {
 
   public static <K> Opt<K> tryGetFirstKey(final SortedMap<K,?> sortedMap) {
     return sortedMap.isEmpty() ? Opt.empty() : Opt.of(sortedMap.firstKey());
+  }
+
+  public static final <I,O> Function<I,Stream<O>> filter(final Class<O> clazz){
+    return i -> clazz.isInstance(i) ? Stream.of(clazz.cast(i)) : Stream.empty();
   }
 
 

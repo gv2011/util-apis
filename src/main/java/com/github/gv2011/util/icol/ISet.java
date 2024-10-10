@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 
 import com.github.gv2011.util.XStream;
 
-public interface ISet<E> extends Set<E>, ICollectionG<E, ISet<E>>{
+public interface ISet<E> extends Set<E>, ICollectionG<E, ISet<E>>, ICollection<E>{
 
   public static interface Builder<E> extends CollectionBuilder<ISet<E>,E,Builder<E>>{}
 

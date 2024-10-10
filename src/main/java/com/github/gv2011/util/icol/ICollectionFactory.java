@@ -31,7 +31,7 @@ public interface ICollectionFactory {
     return nothing();
   }
 
-  <E> IList<E> emptyList();
+  <E> ISetList<E> emptyList();
 
   @SuppressWarnings("unchecked")
   default <E> Empty<E> emptySet(){
@@ -47,7 +47,7 @@ public interface ICollectionFactory {
 
   //Single:
 
-  <E> IList<E> listOf(final E element);
+  <E> ISetList<E> listOf(final E element);
 
   default <E> Single<E> single(final E element){
     return setOf(element);
@@ -119,10 +119,24 @@ public interface ICollectionFactory {
     else return collection.stream().collect(listCollector());
   }
 
+  @SuppressWarnings("unchecked")
   default <E> ISet<E> setFrom(final Collection<? extends E> collection){
-    if(collection.isEmpty()) return emptySet();
-    else if(collection.size()==1) return setOf(collection.iterator().next());
-    else return collection.parallelStream().collect(setCollector());
+    if(ISet.class.isInstance(collection)) return (ISet<E>) collection;
+    else{
+      if(collection.isEmpty()) return emptySet();
+      else if(collection.size()==1) return setOf(collection.iterator().next());
+      else return collection.parallelStream().collect(setCollector());
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  default <E> ISetList<E> setListFrom(final Collection<? extends E> collection){
+    if(ISetList.class.isInstance(collection)) return (ISetList<E>) collection;
+    else{
+      if(collection.isEmpty()) return emptyList();
+      else if(collection.size()==1) return listOf(collection.iterator().next());
+      else return collection.stream().collect(setListCollector());
+    }
   }
 
   default <E extends Comparable<? super E>> ISortedSet<E> sortedSetFrom(final Collection<? extends E> collection){
@@ -184,6 +198,8 @@ public interface ICollectionFactory {
 
   <E> IList.Builder<E> listBuilder();
 
+  <E> ISetList.Builder<E> setListBuilder();
+
   Path.Builder pathBuilder();
 
   <E extends Comparable<? super E>> IComparableList.Builder<E> comparableListBuilder();
@@ -200,6 +216,8 @@ public interface ICollectionFactory {
   //Collectors:
 
   <E> Collector<E, ?, IList<E>> listCollector();
+
+  <E> Collector<E, ?, ISetList<E>> setListCollector();
 
   <E> Collector<E, ?, ISet<E>> setCollector();
 
@@ -240,6 +258,10 @@ public interface ICollectionFactory {
 
   <E> XStream<E> xStream(Stream<E> s);
 
+  default <E> XStream<E> emptyStream(){
+    return xStream(Stream.empty());
+  }
+
   <E> XStream<E> pStream(Stream<E> s);
 
   <E> XStream<E> xStream(Spliterator<E> spliterator, boolean parallel);
@@ -249,5 +271,7 @@ public interface ICollectionFactory {
     final Function<? super V,? extends K> key,
     final BinaryOperator<V> mergeFunction
   );
+
+  <E> Collector<E, ?, ISet<E>> transitiveClosure(Function<? super E,Stream<? extends E>> dependents);
 
 }

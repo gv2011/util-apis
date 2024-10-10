@@ -36,7 +36,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -153,14 +152,14 @@ public final class FileUtils {
     return ByteUtils.read(path);
   }
 
-  public static Optional<String> tryReadText(final Path path){
+  public static Opt<String> tryReadText(final Path path){
     return
       call(()->{
         try{
-          return Optional.of(Files.newInputStream(path));
+          return Opt.of(Files.newInputStream(path));
         }
         catch(final NoSuchFileException e){
-          return Optional.<InputStream>empty();
+          return Opt.<InputStream>empty();
         }
       })
       .map(in->StreamUtils.readText(()->in))

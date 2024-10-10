@@ -2,17 +2,17 @@ package com.github.gv2011.util.html;
 
 import java.net.URI;
 
-public interface BlockBuilder {
+public interface BlockBuilder{
+
+  HtmlFactory factory();
 
   BlockBuilder close();
-
-  BlockType blockType(String name);
-
-  BlockBuilder setBlockType(BlockType blockType);
 
   BlockBuilder addText(String text);
 
   BlockBuilder addBlock();
+
+  BlockBuilder addBlock(BlockType blockType);
 
   FormBuilder addForm();
 

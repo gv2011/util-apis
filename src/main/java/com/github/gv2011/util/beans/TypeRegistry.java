@@ -12,5 +12,4 @@ public interface TypeRegistry {
 
     boolean isSupported(Class<?> clazz);
 
-
 }

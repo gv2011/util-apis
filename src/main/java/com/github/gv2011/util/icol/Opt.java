@@ -3,6 +3,7 @@ package com.github.gv2011.util.icol;
 
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.format;
+import static com.github.gv2011.util.ex.Exceptions.illegalArgument;
 import static com.github.gv2011.util.icol.ICollections.nothing;
 
 import java.util.Collection;
@@ -29,6 +30,10 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
     return ICollections.single(element);
   }
 
+  public static <E> Opt<E> ofArray(final E[] array){
+    return array.length==1 ? ICollections.single(array[0]) : array.length==0 ? ICollections.empty() : illegalArgument(array);
+  }
+
   public static <E> Opt<E> ofOptional(final Optional<? extends E> optional){
     return ICollections.ofOptional(optional);
   }
@@ -41,6 +46,10 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
     return ICollections.empty();
   }
 
+  public static <E> Opt<E> tryCast(@Nullable final Object element, final Class<E> clazz) {
+    return clazz.isInstance(element) ? ICollections.single(clazz.cast(element)) : ICollections.empty();
+  }
+
   @Override
   E get();
 
@@ -49,6 +58,7 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
   @Override
   Opt<E> filter(final Predicate<? super E> predicate);
 
+  @Override
   <U> Opt<U> map(final ThrowingFunction<? super E, ? extends U> mapper);
 
   default Opt<E> ifPresentDo(final ThrowingConsumer<? super E> consumer){
@@ -159,5 +169,6 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
   default OptionalInt flatMapToInt(final Function<? super E, OptionalInt> mapping){
     return isPresent() ? mapping.apply(get()) : OptionalInt.empty();
   }
+
 
 }

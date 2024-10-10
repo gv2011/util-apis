@@ -41,7 +41,9 @@ public final class Verify {
   }
 
   public static void verify(final boolean expr, final Supplier<String> msg) {
-    if(!expr) throw new IllegalStateException(msg.get());
+    if(!expr)
+      throw new IllegalStateException(msg.get())
+    ;
   }
 
   public static void verify(final boolean expr, final String pattern, final Object... params) {

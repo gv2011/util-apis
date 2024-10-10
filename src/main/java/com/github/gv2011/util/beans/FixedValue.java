@@ -34,6 +34,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface FixedValue {
 
-    String value();
+    String[] value();
 
 }

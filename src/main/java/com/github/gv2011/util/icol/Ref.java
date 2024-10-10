@@ -1,6 +1,7 @@
 package com.github.gv2011.util.icol;
 
 import static com.github.gv2011.util.Verify.verify;
+import static com.github.gv2011.util.icol.ICollections.toISet;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -9,7 +10,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
+import com.github.gv2011.util.ex.ThrowingFunction;
 import com.github.gv2011.util.ex.ThrowingSupplier;
 
 public abstract class Ref<E> implements Single<E>{
@@ -77,8 +80,12 @@ public abstract class Ref<E> implements Single<E>{
 
   @Override
   public ISet<E> addElement(final E other) {
-    // TODO Auto-generated method stub
-    return null;
+    return Stream.of(get(), other).collect(toISet());
+  }
+
+  @Override
+  public <F> Single<F> map(final ThrowingFunction<? super E, ? extends F> mapping) {
+    return ICollections.single(mapping.apply(get()));
   }
 
   @Override

@@ -10,6 +10,7 @@ import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -116,11 +117,31 @@ public final class Exceptions {
   }
 
   public static <R> Opt<R> tryCall(final ThrowingSupplier<R> throwing){
-    final Function<Object, R> f = throwing.asFunction();
+    return tryCall(throwing.asFunction(), e->{});
+  }
+
+  public static <R> Opt<R> tryCall(final ThrowingSupplier<R> throwing, final Consumer<Throwable> errorHandler){
+    return tryCall(throwing.asFunction(), errorHandler);
+  }
+
+  public static Opt<Nothing> tryCall(final ThrowingRunnable throwing, final Consumer<Throwable> errorHandler){
+    return tryCall(throwing.asFunction(), errorHandler);
+  }
+
+//  public static <R> Opt<R> tryCall(final Supplier<R> throwing){
+//    return tryCall(a->throwing.get());
+//  }
+
+  public static boolean tryCall(final ThrowingRunnable throwing){
+    return tryCall(throwing.asFunction(), e->{}).isPresent();
+  }
+
+  private static <R> Opt<R> tryCall(final Function<Object, R> f, final Consumer<Throwable> errorHandler){
     final R result;
     try {
       result = f.apply(null);
     } catch (final Exception e) {
+      errorHandler.accept(e);
       return iCollections().empty();
     }
     return iCollections().single(result);

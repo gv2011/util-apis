@@ -3,6 +3,7 @@ package com.github.gv2011.util;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
+import static java.nio.charset.CodingErrorAction.REPORT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Spliterator.IMMUTABLE;
 import static java.util.Spliterator.NONNULL;
@@ -137,7 +138,12 @@ public final class StreamUtils {
       @Override
       public void write(final byte[] b, final int off, final int len) throws IOException {
         out.write(b, off, len);
-        counter.accept(len);
+        if(len>0) counter.accept(len);
+      }
+      @Override
+      public void close() throws IOException {
+        super.close();
+        counter.accept(0);
       }
     };
   }
@@ -181,5 +187,9 @@ public final class StreamUtils {
 
   public static final InputStream asStream(final Reader reader, final Charset charset){
     return new ReaderInputStream(reader, charset);
+  }
+
+  public static Reader reader(final InputStream in) {
+    return new InputStreamReader(in, UTF_8.newDecoder().onMalformedInput(REPORT).onUnmappableCharacter(REPORT));
   }
 }

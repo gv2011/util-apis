@@ -1,9 +1,11 @@
 package com.github.gv2011.util.cache;
 
+import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.icol.ICollections.nothing;
 
 import java.lang.ref.SoftReference;
+import java.lang.reflect.Proxy;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -57,5 +59,12 @@ public final class CacheUtils {
       store.accept(value);
     }
     return value;
+  }
+
+  public static <T> T cache(final Class<T> clazz, final T delegate){
+    verify(clazz.isInterface());
+    return clazz.cast(
+      Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new CachingProxy<>(clazz.cast(delegate)))
+    );
   }
 }

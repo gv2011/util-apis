@@ -1,12 +1,15 @@
 package com.github.gv2011.util.icol;
 
 import static com.github.gv2011.util.icol.ICollections.emptySortedSet;
+import static com.github.gv2011.util.icol.ICollections.toISet;
 import static com.github.gv2011.util.icol.ICollections.toISortedSet;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NavigableSet;
+
+import com.github.gv2011.util.ex.ThrowingFunction;
 
 public abstract class AbstractISortedSet<E extends Comparable<? super E>, S extends ISortedSet<E>>
 implements ISortedSet<E>{
@@ -84,6 +87,11 @@ implements ISortedSet<E>{
     if(isEmpty() || other.isEmpty()) return emptySortedSet();
     else if(this==other) return this;
     else return parallelStream().filter(other::contains).collect(toISortedSet());
+  }
+
+  @Override
+  public final <F> ISet<F> map(final ThrowingFunction<? super E, ? extends F> mapping) {
+    return stream().map(mapping.asFunction()).collect(toISet());
   }
 
   @Deprecated

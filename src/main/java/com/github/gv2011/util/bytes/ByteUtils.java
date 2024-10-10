@@ -7,6 +7,7 @@ import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.num.NumUtils.isOdd;
 import static java.lang.Math.min;
+import static java.nio.charset.CodingErrorAction.REPORT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.InputStream;
@@ -15,7 +16,6 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetEncoder;
-import static java.nio.charset.CodingErrorAction.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
@@ -68,7 +68,7 @@ public class ByteUtils {
 
   public static byte[] hexToByteArray(final CharSequence hex){
     final String noWhitespace = removeWhitespaceAndColon(hex);
-    if(isOdd(noWhitespace.length())) throw new IllegalArgumentException();
+    if(isOdd(noWhitespace.length())) throw new IllegalArgumentException("\""+hex.toString()+"\"");
     final int size = noWhitespace.length()/2;
     final byte[] b = new byte[size];
     for(int i=0; i<size; i++){

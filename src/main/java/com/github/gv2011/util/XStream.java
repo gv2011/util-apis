@@ -8,6 +8,7 @@ import static java.util.Spliterator.NONNULL;
 import static java.util.Spliterator.ORDERED;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Optional;
@@ -102,6 +103,14 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
 
   @Override
   <R> XStream<R> flatMap(Function<? super E, ? extends Stream<? extends R>> mapper);
+
+  default <R> XStream<R> mapOpt(final Function<? super E, ? extends Opt<? extends R>> mapper){
+    return mapCollection(mapper);
+  }
+
+  default <R> XStream<R> mapCollection(final Function<? super E, ? extends Collection<? extends R>> mapper){
+    return flatMap(e->mapper.apply(e).stream());
+  }
 
   default <R> XStream<R> mapThrowing(final ThrowingFunction<? super E, ? extends R> mapper){
     return map(e->call(()->mapper.applyThrowing(e)));

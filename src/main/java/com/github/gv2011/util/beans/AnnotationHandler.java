@@ -15,6 +15,8 @@ public interface AnnotationHandler {
 
   Opt<Class<? extends TypeNameStrategy>> typeNameStrategy(Class<?> clazz);
 
+  Opt<String> typeNameProperty(final Class<?> clazz);
+
   boolean annotatedAsBean(Class<?> clazz);
 
   boolean annotatedAsConstructor(Constructor<?> constructor);

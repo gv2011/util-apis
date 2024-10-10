@@ -1,33 +1,5 @@
 package com.github.gv2011.util.icol;
 
-import static com.github.gv2011.util.ex.Exceptions.staticClass;
-
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2017 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -47,6 +19,7 @@ import com.github.gv2011.util.Constants;
 import com.github.gv2011.util.ServiceLoaderUtils;
 import com.github.gv2011.util.XStream;
 import com.github.gv2011.util.ann.Nullable;
+import com.github.gv2011.util.ex.Exceptions;
 
 
 /**
@@ -54,7 +27,7 @@ import com.github.gv2011.util.ann.Nullable;
  */
 public final class ICollections {
 
-  private ICollections(){staticClass();}
+  private ICollections(){Exceptions.staticClass();}
 
   private static final Constant<ICollectionFactory> ICOLF = Constants.softRefConstant(
       ()->ServiceLoaderUtils.loadService(ICollectionFactorySupplier.class).get()
@@ -74,7 +47,7 @@ public final class ICollections {
     return iCollections().nothing();
   }
 
-  public static <E> IList<E> emptyList(){
+  public static <E> ISetList<E> emptyList(){
     return iCollections().emptyList();
   }
 
@@ -98,7 +71,7 @@ public final class ICollections {
 
   //Single:
 
-  public static <E> IList<E> listOf(final E element) {
+  public static <E> ISetList<E> listOf(final E element) {
     return iCollections().listOf(element);
   }
 
@@ -108,6 +81,14 @@ public final class ICollections {
 
   public static <E> Single<E> setOf(final E element){
     return iCollections().single(element);
+  }
+
+  public static <E> ISet<E> addToSet(final Collection<? extends E> collection, final E element){
+    final ISet<E> set = setFrom(collection);
+    return set.contains(element)
+      ? set
+      : iCollections().<E>setBuilder().addAll(set).add(element).build()
+    ;
   }
 
   public static <E extends Comparable<? super E>> ISortedSet<E> sortedSetOf(final E element) {
@@ -186,6 +167,10 @@ public final class ICollections {
     return iCollections().setFrom(collection);
   }
 
+  public static <E> ISetList<E> setListFrom(final Collection<? extends E> collection){
+    return iCollections().setListFrom(collection);
+  }
+
   public static <E extends Comparable<? super E>> ISortedSet<E> sortedSetFrom(
     final Collection<? extends E> collection
   ){
@@ -201,7 +186,6 @@ public final class ICollections {
   ){
     return iCollections().sortedMapFrom(map);
   }
-
 
   //Arrays:
 
@@ -229,6 +213,10 @@ public final class ICollections {
 
   public static <E> IList.Builder<E> listBuilder() {
     return iCollections().listBuilder();
+  }
+
+  public static <E> ISetList.Builder<E> setListBuilder() {
+    return iCollections().setListBuilder();
   }
 
   public static Path.Builder pathBuilder() {
@@ -262,8 +250,20 @@ public final class ICollections {
     return iCollections().listCollector();
   }
 
+  public static <E> Collector<E, ?, ISetList<E>> toISetList() {
+    return iCollections().setListCollector();
+  }
+
   public static <E> Collector<E, ?, ISet<E>> toISet() {
     return iCollections().setCollector();
+  }
+
+  public static <E> Collector<E, ?, ISet<E>> transitiveClosure(final Function<? super E,Stream<? extends E>> dependents) {
+    return iCollections().transitiveClosure(dependents);
+  }
+
+  public static <E> ISet<E> transitiveClosure(final E node, final Function<? super E,Stream<? extends E>> dependents) {
+    return Stream.of(node).collect(transitiveClosure(dependents));
   }
 
   public static <E extends Comparable<? super E>> Collector<E, ?, ISortedSet<E>> toISortedSet() {
@@ -314,8 +314,8 @@ public final class ICollections {
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public static final <U,E extends U> ISet<U> upcast(final ISet<E> set){
-    return (ISortedSet)set;
+  public static final <U> ISet<U> upcast(final ISet<? extends U> set){
+    return (ISet)set;
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -347,6 +347,10 @@ public final class ICollections {
 
   public static <E> XStream<E> xStream(final Stream<E> s) {
     return iCollections().xStream(s);
+  }
+
+  public static <E> XStream<E> emptyStream() {
+    return iCollections().emptyStream();
   }
 
   public static <E> XStream<E> xStream(final Collection<E> c) {

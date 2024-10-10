@@ -1,5 +1,6 @@
 package com.github.gv2011.util.xml;
 
+import static com.github.gv2011.util.CollectionUtils.filter;
 import static com.github.gv2011.util.CollectionUtils.toOpt;
 import static com.github.gv2011.util.Verify.notNull;
 import static com.github.gv2011.util.Verify.verifyEqual;
@@ -9,8 +10,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
-import java.util.AbstractList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -21,10 +22,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
@@ -71,8 +74,8 @@ public final class DomUtils {
     write(doc, b);
     return b.build();
   }
-  
-  public static long write(Document doc, OutputStream out) {
+
+  public static long write(final Document doc, final OutputStream out) {
     final DOMImplementationLS dom =
       (DOMImplementationLS) call(()->DOMImplementationRegistry.newInstance()).getDOMImplementation("LS")
     ;
@@ -111,7 +114,7 @@ public final class DomUtils {
   }
 
   public static Opt<Element> getChild(final Element e, final String tag) {
-    return stream(e.getChildNodes())
+    return childNodes(e)
       .filter(n->n.getNodeType()==Node.ELEMENT_NODE)
       .map(n->(Element)n)
       .filter(ce->ce.getTagName().equals(tag))
@@ -119,23 +122,18 @@ public final class DomUtils {
     ;
   }
 
-  public static Stream<Node> stream(final NodeList nodeList) {
-    return new NodeListWrapper(nodeList).stream();
+  public static Stream<Node> childNodes(final Node node) {
+    final NodeList childNodes = node.getChildNodes();
+    return IntStream.range(0, childNodes.getLength()).mapToObj(childNodes::item);
   }
 
-  private static final class NodeListWrapper extends AbstractList<Node>{
-    private final NodeList nodes;
-    private NodeListWrapper(final NodeList nodes) {
-      this.nodes = nodes;
-    }
-    @Override
-    public Node get(final int index) {
-      return notNull(nodes.item(index));
-    }
+  public static Stream<Element> childElements(final Node node) {
+    return childNodes(node).flatMap(filter(Element.class));
+  }
 
-    @Override
-    public int size() {
-      return nodes.getLength();
-    }}
+  public static Stream<Attr> attributes(final Node node) {
+    final NamedNodeMap attributes = node.getAttributes();
+    return IntStream.range(0, attributes.getLength()).mapToObj(i->(Attr)attributes.item(i));
+  }
 
 }
