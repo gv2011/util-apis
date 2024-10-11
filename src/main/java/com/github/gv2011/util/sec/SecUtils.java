@@ -67,29 +67,37 @@ public final class SecUtils {
   public static final String PKCS12_FILE_EXTENSION = "p12";
   public static final String JAVAX_NET_DEBUG_SYS_PROP = "javax.net.debug";
   public static final String JAVAX_NET_DEBUG_SYS_PROP_ALL = "all";
+  public static final String X_509 = "X.509";
 
   private static final String PKIX = "PKIX";
   private static final String SUN_X509 = "SunX509";
   private static final String CERT_FILE_PATTERN = "cert{}.crt";
   private static final String CERT_ALIAS = "cert";
-  private static final String X_509 = "X.509";
+
 
   private SecUtils(){staticClass();}
 
   @SuppressWarnings("unused")
   private static final Logger LOG = LoggerFactory.getLogger(SecUtils.class);
-  
-  
+
+
   static final Constant<SecProvider> SEC_PROVIDER =
     RecursiveServiceLoader.lazyService(SecProvider.class)
   ;
-  
-  public static final SimpleKeyStore createSimpleKeyStore(Domain domain){
+
+  public static final SimpleKeyStore createSimpleKeyStore(final Domain domain){
     return SEC_PROVIDER.get().createSimpleKeyStore(domain);
   }
 
-  public static final SimpleKeyStore loadSimpleKeyStore(TypedBytes bytes){
+  public static final SimpleKeyStore loadSimpleKeyStore(final TypedBytes bytes){
     return SEC_PROVIDER.get().loadSimpleKeyStore(bytes);
+  }
+
+  /**
+   * @param idRsaPub Open SSH "id_rsa.pub" format
+   */
+  public static OpenSshRsaPublicKey parseOpenSshRsaPublicKey(final String idRsaPub){
+    return SEC_PROVIDER.get().parseOpenSshRsaPublicKey(idRsaPub);
   }
 
   public static RSAPublicKey createRsaPublicKey(final BigInteger modulus, final BigInteger publicExponent){
@@ -98,7 +106,7 @@ public final class SecUtils {
     );
   }
 
-  public static RSAPublicKey parseRsaPublicKey(Bytes encodedKey){
+  public static RSAPublicKey parseRsaPublicKey(final Bytes encodedKey){
     return (RSAPublicKey)call(()->KeyFactory.getInstance(RSA).generatePublic(new X509EncodedKeySpec(encodedKey.toByteArray())));
   }
 
@@ -139,7 +147,7 @@ public final class SecUtils {
     writeCertificateChain(certChain, folder, CERT_FILE_PATTERN);
   }
 
-  public static final void writeCertificateChain(final IList<X509Certificate> certChain, final Path folder, String certFilePattern){
+  public static final void writeCertificateChain(final IList<X509Certificate> certChain, final Path folder, final String certFilePattern){
     int i=0;
     boolean done = false;
     while(!done){
@@ -176,7 +184,7 @@ public final class SecUtils {
     return readCertificateChain(folder, CERT_FILE_PATTERN);
   }
 
-  public static final IList<X509Certificate> readCertificateChain(final Path folder, String certFilePattern){
+  public static final IList<X509Certificate> readCertificateChain(final Path folder, final String certFilePattern){
     final IList.Builder<X509Certificate> chain = listBuilder();
     int i = 0;
     Path certFile = certFile(folder, i, certFilePattern);
@@ -191,7 +199,7 @@ public final class SecUtils {
     return certFile(folder, i, CERT_FILE_PATTERN);
   }
 
-  private static Path certFile(final Path folder, final int i, String certFilePattern) {
+  private static Path certFile(final Path folder, final int i, final String certFilePattern) {
     return folder.resolve(format(certFilePattern,withLeadingZeros(i+1,2)));
   }
 
@@ -219,7 +227,7 @@ public final class SecUtils {
       listOf(readCertificate(ByteUtils.read(certFile(certificateDirectory, 0))))
     );
   }
-  
+
   public static final KeyStore addToKeyStore(final ServerCertificate serverCertificate, final KeyStore keystore){
     addToKeyStore(
       serverCertificate.keyPair(),
@@ -390,8 +398,8 @@ public final class SecUtils {
     createCertificateIfMissing(certificateDirectory);
     return RsaKeyPair.parse(ByteUtils.read(certificateDirectory.resolve(KEY_FILE_NAME))).getPublic();
   }
-  
-  public static final DestroyingCloseable asDestroyable(KeyStore keyStore){
+
+  public static final DestroyingCloseable asDestroyable(final KeyStore keyStore){
     return new KeyStoreDestroyer(keyStore);
   }
 
