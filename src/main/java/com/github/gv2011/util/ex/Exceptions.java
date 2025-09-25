@@ -10,6 +10,7 @@ import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -122,6 +123,18 @@ public final class Exceptions {
 
   public static <R> Opt<R> tryCall(final ThrowingSupplier<R> throwing, final Consumer<Throwable> errorHandler){
     return tryCall(throwing.asFunction(), errorHandler);
+  }
+
+  public static <I,R> R tryCall(
+    final ThrowingSupplier<I> throwing,
+    final Function<I,R> mapping,
+    final Function<Throwable,R> errorHandler
+  ){
+    final AtomicReference<Throwable> ref = new AtomicReference<>();
+    return tryCall(throwing, ex->ref.set(ex))
+      .map(i->mapping.apply(i))
+      .orElseGet(()->errorHandler.apply(ref.get()))
+    ;
   }
 
   public static Opt<Nothing> tryCall(final ThrowingRunnable throwing, final Consumer<Throwable> errorHandler){

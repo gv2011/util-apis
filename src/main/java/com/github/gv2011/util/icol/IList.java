@@ -1,6 +1,8 @@
 package com.github.gv2011.util.icol;
 
 import static com.github.gv2011.util.CollectionUtils.intRange;
+import static com.github.gv2011.util.CollectionUtils.pair;
+import static com.github.gv2011.util.icol.ICollections.iCollections;
 import static com.github.gv2011.util.icol.ICollections.toIList;
 import static com.github.gv2011.util.icol.ICollections.toISortedMap;
 
@@ -12,6 +14,7 @@ import java.util.NoSuchElementException;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
+import com.github.gv2011.util.Pair;
 import com.github.gv2011.util.XStream;
 
 public interface IList<E> extends List<E>, ICollectionG<E,IList<E>>, ListAccess<E>{
@@ -194,6 +197,15 @@ public interface IList<E> extends List<E>, ICollectionG<E,IList<E>>, ListAccess<
     return stream().filter(e->!other.contains(e)).collect(toIList());
   }
 
+  @Override
   IList<E> reversed();
+
+  default Opt<? extends IList<E>> parent(){
+    return isEmpty() ? Opt.empty() : Opt.of(subList(0, size()-1));
+  }
+
+  default XStream<Pair<Integer,E>> indexStream(){
+    return iCollections().xStream(IntStream.range(0, size()).mapToObj(i->pair(i, get(i))));
+  }
 
 }

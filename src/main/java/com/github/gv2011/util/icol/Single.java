@@ -44,6 +44,10 @@ public interface Single<E> extends Opt<E>{
     return get();
   }
 
+  default E value() {
+    return get();
+  }
+
   @Override
   default E first() {
     return get();

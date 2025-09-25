@@ -3,6 +3,7 @@ package com.github.gv2011.util;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
+import static com.github.gv2011.util.ex.Exceptions.wrap;
 import static java.nio.charset.CodingErrorAction.REPORT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Spliterator.IMMUTABLE;
@@ -15,7 +16,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.StringReader;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -25,11 +29,16 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.github.gv2011.util.ann.Nullable;
+import com.github.gv2011.util.bytes.ByteIterator;
+import com.github.gv2011.util.bytes.ByteUtils;
+import com.github.gv2011.util.ex.ThrowingRunnable;
 import com.github.gv2011.util.ex.ThrowingSupplier;
 
 public final class StreamUtils {
 
   private StreamUtils(){staticClass();}
+
+  public static final char BOM = '\ufeff';
 
   public static byte[] readBytes(final InputStream in, final int length){
     return call(()->{
@@ -120,8 +129,16 @@ public final class StreamUtils {
     });
   }
 
+  public static long copy(final ThrowingSupplier<InputStream> in, final ThrowingSupplier<OutputStream> out) {
+    return callWithCloseable(out, o->{return copy(in, o);});
+  }
+
   public static CloseableIntIterator asIterator(final InputStream in) {
     return new StreamIterator(in);
+  }
+
+  public static ByteIterator asByteIterator(final InputStream in) {
+    return ByteUtils.asIterator(in);
   }
 
   public static final InputStream countingStream(final InputStream in, final IntConsumer counter){
@@ -181,6 +198,10 @@ public final class StreamUtils {
     };
   }
 
+  public static final InputStream asStream(final String s){
+    return asStream(new StringReader(s));
+  }
+
   public static final InputStream asStream(final Reader reader){
     return asStream(reader, UTF_8);
   }
@@ -190,6 +211,47 @@ public final class StreamUtils {
   }
 
   public static Reader reader(final InputStream in) {
-    return new InputStreamReader(in, UTF_8.newDecoder().onMalformedInput(REPORT).onUnmappableCharacter(REPORT));
+    return reader(in, false);
+  }
+
+  public static Reader reader(final InputStream in, final boolean removeBom) {
+    final BufferedReader reader = new BufferedReader(
+      new InputStreamReader(in, UTF_8.newDecoder().onMalformedInput(REPORT).onUnmappableCharacter(REPORT))
+    );
+    if(removeBom){
+      call(()->{
+        reader.mark(10);
+        final int i = reader.read();
+        if(i != (int)BOM) reader.reset();
+      });
+    }
+    return reader;
+  }
+
+  public static Writer writer(final OutputStream out) {
+    return new OutputStreamWriter(out, UTF_8.newEncoder().onMalformedInput(REPORT).onUnmappableCharacter(REPORT));
+  }
+
+  public static OutputStream dontClose(final OutputStream out) {
+    return dontClose(out, ()->{});
+  }
+
+  public static OutputStream dontClose(final OutputStream out, final ThrowingRunnable onClose) {
+    return new OutputStream(){
+      @Override
+      public void write(final int b) throws IOException {out.write(b);}
+      @Override
+      public void write(final byte[] b, final int off, final int len) throws IOException {out.write(b, off, len);}
+      @Override
+      public void flush() throws IOException {out.flush();}
+      @Override
+      public void close() throws IOException {
+        try {
+          onClose.runThrowing();
+        }
+        catch (final IOException e) {throw e;}
+        catch (final Exception e)   {throw wrap(e);}
+      }
+    };
   }
 }

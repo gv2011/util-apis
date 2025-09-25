@@ -1,7 +1,9 @@
 package com.github.gv2011.util;
 
 import static com.github.gv2011.util.CollectionUtils.collectToString;
+import static com.github.gv2011.util.CollectionUtils.pair;
 import static com.github.gv2011.util.CollectionUtils.toSortedSet;
+import static com.github.gv2011.util.CollectionUtils.tryGet;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.format;
@@ -9,15 +11,19 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.icol.ICollections.listBuilder;
 import static com.github.gv2011.util.icol.ICollections.toIList;
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toMap;
 
 import java.io.Reader;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.github.gv2011.util.bytes.ByteUtils;
@@ -34,6 +40,8 @@ public final class StringUtils {
   private StringUtils(){staticClass();}
 
   public static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
+  private static final Map<Integer,int[]> UMLAUTE_TRANSLITERATION = umlauteTransliteration();
 
   public static String removeWhitespace(final String s) {
     return s.replaceAll("\\s+", "");
@@ -81,6 +89,11 @@ public final class StringUtils {
   public static String tryRemoveTail(final String s, final String tail) {
     if(s.endsWith(tail)) return s.substring(0, s.length()-tail.length());
     else return s;
+  }
+
+  public static Opt<String> withoutTail(final String s, final String tail) {
+    if(s.endsWith(tail)) return Opt.of(s.substring(0, s.length()-tail.length()));
+    else return Opt.empty();
   }
 
   public static String showSpecial(final String s) {
@@ -147,9 +160,21 @@ public final class StringUtils {
     return alignLeft(str.toString(), size, ' ');
   }
 
+  public static Opt<Integer> firstDifference(final String s1, final String s2) {
+    final int min = Math.min(s1.length(), s2.length());
+    return Opt
+      .ofOptional(
+        IntStream.range(0, min)
+        .filter(i->s1.charAt(i)!=s2.charAt(i))
+        .findFirst()
+      )
+      .or(()->s1.length()==s2.length() ? Opt.empty() : Opt.of(min))
+    ;
+  }
+
   public static String alignRight(final CharSequence str, final int size, final char fill) {
     final int fillSize = size - str.length();
-    if (fillSize < 0) throw new IllegalArgumentException("Does not fit.");
+    if (fillSize < 0) throw new IllegalArgumentException(format("The size of \"{}\" is bigger than {}.", str, size));
     return new StringBuilder(size).append(fillArray(fill, fillSize)).append(str).toString();
   }
 
@@ -184,6 +209,16 @@ public final class StringUtils {
       .collect(toIList());
   }
 
+  public static String replaceUmlauts(final String text) {
+    return toString(text.codePoints()
+      .flatMap(i->
+        tryGet(UMLAUTE_TRANSLITERATION, i)
+        .map(IntStream::of)
+        .orElseGet(()->IntStream.of(i))
+      )
+    );
+  }
+
   public static void addSplit(final String text, final char c, final Builder<String> listBuilder) {
     int i = text.indexOf(c);
     int from = 0;
@@ -207,6 +242,17 @@ public final class StringUtils {
     return ByteUtils.asUtf8(s);
   }
 
+  public static final String toString(final IntStream codePoints){
+      return codePoints
+        .collect(
+          StringBuilder::new,
+          StringBuilder::appendCodePoint,
+          StringBuilder::append
+        )
+        .toString()
+      ;
+  }
+
   public static final String read(final ThrowingSupplier<Reader> reader){
     return callWithCloseable(reader, r->{
       final StringWriter sw = new StringWriter();
@@ -222,6 +268,44 @@ public final class StringUtils {
       .filter(selection::containsChar)
       .limit(cpLength)
     );
+  }
+
+
+  private static Map<Integer, int[]> umlauteTransliteration() {
+    return Collections.unmodifiableMap(
+      Stream.of(pair('Ä',"AE"), pair('Ö',"OE"), pair('Ü',"UE"), pair('ẞ',"SS"))
+      .flatMap(p->Stream.of(
+        p,
+        pair(Character.toLowerCase(p.getKey()), p.getValue().toLowerCase(Locale.GERMANY))
+      ))
+      .collect(toMap(
+        p->verify(Character.toString(p.getKey()).codePoints().toArray(), a->a.length==1)[0],
+        p->p.getValue().codePoints().toArray()
+      ))
+    );
+  }
+
+  public static Opt<String> nonEmpty(final String string) {
+    return string.isEmpty() ? Opt.empty() : Opt.of(string);
+  }
+
+  public static String firstToLowerCase(final String string) {
+    if(string.isEmpty()) return "";
+    else{
+      final int cp0 = string.codePointAt(0);
+      if(Character.isLowerCase(cp0)) return string;
+      else return collect(IntStream.concat(
+        IntStream.of(Character.toLowerCase(cp0)),
+        string.codePoints().skip(1)
+      ));
+    }
+  }
+
+  public static String collect(final IntStream codepoints){
+    return codepoints
+      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+      .toString()
+    ;
   }
 
 }

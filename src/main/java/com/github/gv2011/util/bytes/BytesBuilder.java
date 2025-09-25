@@ -43,9 +43,9 @@ public final class BytesBuilder extends FilterOutputStream implements Builder<By
     setOut(bos);
   }
 
-  BytesBuilder(final int initialBufferSize){
+  BytesBuilder(final long initialBufferSize){
     super(null);
-    bos = new ByteArrayOutputStream(initialBufferSize);
+    bos = new ByteArrayOutputStream((int)Math.min(initialBufferSize, limit));
     setOut(bos);
   }
 

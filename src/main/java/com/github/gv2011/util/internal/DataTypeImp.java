@@ -155,8 +155,8 @@ public final class DataTypeImp implements DataType {
   public static DataType parse(final String encoded) {
     final MimeType mimeType = call(()->new MimeType(encoded));
     return new DataTypeImp(
-      mimeType.getPrimaryType(),
-      mimeType.getSubType(),
+      toLowerCase(mimeType.getPrimaryType()),
+      toLowerCase(mimeType.getSubType()),
       ( Collections.list((Enumeration<?>)mimeType.getParameters().getNames())
         .stream().map(n->
         toLowerCase((String)n)

@@ -47,7 +47,7 @@ public class Country extends AbstractTypedString<Country>{
 
   static{
     COUNTRIES = Arrays.stream(Locale.getISOCountries()).collect(toISortedMap(k->k,k->{
-      final String name = new Locale(Language.ENGLISH.getLanguage(), k).getDisplayCountry(Language.ENGLISH);
+      final String name = Locale.of(Language.ENGLISH.getLanguage(), k).getDisplayCountry(Language.ENGLISH);
       final ISet<String> eu = asSet(new String[]{
         "BE","BG","DK","DE","EE","FI","FR","GR","IE","IT","HR","LV","LT","LU",
         "MT","NL","AT","PL","PT","RO","SE","SK","SI","ES","CZ","HU","CY"}
@@ -103,7 +103,7 @@ public class Country extends AbstractTypedString<Country>{
   }
 
   public String name(final Locale locale) {
-    return new Locale(Language.ENGLISH.getLanguage(), iso3166).getDisplayCountry(locale);
+    return Locale.of(Language.ENGLISH.getLanguage(), iso3166).getDisplayCountry(locale);
   }
 
   public boolean euMember(final LocalDate time){

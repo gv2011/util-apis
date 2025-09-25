@@ -2,13 +2,12 @@ package com.github.gv2011.util.xml;
 
 import static com.github.gv2011.util.CollectionUtils.filter;
 import static com.github.gv2011.util.CollectionUtils.toOpt;
-import static com.github.gv2011.util.Verify.notNull;
+import static com.github.gv2011.util.ServiceLoaderUtils.lazyServiceLoader;
 import static com.github.gv2011.util.Verify.verifyEqual;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
@@ -16,11 +15,6 @@ import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMImplementation;
@@ -35,6 +29,7 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
+import com.github.gv2011.util.Constant;
 import com.github.gv2011.util.StreamUtils;
 import com.github.gv2011.util.bytes.ByteUtils;
 import com.github.gv2011.util.bytes.Bytes;
@@ -47,6 +42,10 @@ public final class DomUtils {
 
   private DomUtils(){staticClass();}
 
+  private static final Constant<XmlFactory> FACTORY = lazyServiceLoader(XmlFactory.class);
+
+  public static final XmlFactory xmlFactory(){return FACTORY.get();}
+
   public static Document newDocument(){
     final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
@@ -58,7 +57,6 @@ public final class DomUtils {
     final Document document = domImpl.createDocument("http://www.w3.org/1999/xhtml", "html", docType);
     verifyEqual(document.getDoctype(), docType);
     return document;
-//    return docBuilder.newDocument();
   }
 
   public static String toString(final Document doc){
@@ -90,19 +88,19 @@ public final class DomUtils {
   }
 
 
-  public static String toString1(final Document doc){
-    final DocumentType doctype = notNull(doc.getDoctype());
-    final DOMSource domSource = new DOMSource(doc);
-    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    final StreamResult result = new StreamResult(bos);
-    final TransformerFactory tf = TransformerFactory.newInstance();
-    final Transformer transformer = call(()->tf.newTransformer());
-    transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, doctype.getPublicId());
-    transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, doctype.getSystemId());
-    transformer.setOutputProperty(OutputKeys.ENCODING, UTF_8.name());
-    call(()->transformer.transform(domSource, result));
-    return new String(bos.toByteArray(), UTF_8);
-  }
+//  public static String toString1(final Document doc){
+//    final DocumentType doctype = notNull(doc.getDoctype());
+//    final DOMSource domSource = new DOMSource(doc);
+//    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//    final StreamResult result = new StreamResult(bos);
+//    final TransformerFactory tf = TransformerFactory.newInstance();
+//    final Transformer transformer = call(()->tf.newTransformer());
+//    transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, doctype.getPublicId());
+//    transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, doctype.getSystemId());
+//    transformer.setOutputProperty(OutputKeys.ENCODING, UTF_8.name());
+//    call(()->transformer.transform(domSource, result));
+//    return new String(bos.toByteArray(), UTF_8);
+//  }
 
   public static void setChild(final Element e, final Element child) {
     final String tag = child.getTagName();
@@ -134,6 +132,10 @@ public final class DomUtils {
   public static Stream<Attr> attributes(final Node node) {
     final NamedNodeMap attributes = node.getAttributes();
     return IntStream.range(0, attributes.getLength()).mapToObj(i->(Attr)attributes.item(i));
+  }
+
+  public static String toXmlString(final Element element) {
+    return xmlFactory().toXmlString(element);
   }
 
 }

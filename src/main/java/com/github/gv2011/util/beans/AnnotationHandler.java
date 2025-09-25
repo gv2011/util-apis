@@ -51,4 +51,6 @@ public interface AnnotationHandler {
 
   <T extends TypedString<T>> Opt<TypedStringParser<T>> getTypedStringParser(Class<T> typedStringClass);
 
+  boolean annotatedAsKey(Method m);
+
 }

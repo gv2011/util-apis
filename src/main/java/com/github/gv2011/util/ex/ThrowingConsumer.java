@@ -11,9 +11,31 @@ import com.github.gv2011.util.icol.Nothing;
 
 
 @FunctionalInterface
-public interface ThrowingConsumer<T> extends Throwing<T,Nothing>{
+public interface ThrowingConsumer<T> extends Throwing<T,Nothing>, Consumer<T>{
 
-  void accept(T arg) throws Exception;
+  void acceptThrowing(T arg) throws Exception;
+
+  @Override
+  default void accept(final T arg){
+    try {
+      acceptThrowing(arg);
+    }
+    catch (final InterruptedException e) {
+      throw new InterruptedRtException(e);
+    }
+    catch (final InterruptedIOException e) {
+      throw new InterruptedRtException(e);
+    }
+    catch (final IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    catch (final RuntimeException e) {
+      throw e;
+    }
+    catch (final Exception e) {
+      throw new WrappedException(e);
+    }
+  };
 
   default Consumer<T> andThen(final ThrowingConsumer<? super T> next) {
     return (final T arg) -> {
@@ -25,24 +47,7 @@ public interface ThrowingConsumer<T> extends Throwing<T,Nothing>{
   @Override
   default Function<T,Nothing> asFunction() {
     return (final T arg) -> {
-      try {
-        accept(arg);
-      }
-      catch (final InterruptedException e) {
-        throw new InterruptedRtException(e);
-      }
-      catch (final InterruptedIOException e) {
-        throw new InterruptedRtException(e);
-      }
-      catch (final IOException e) {
-        throw new UncheckedIOException(e);
-      }
-      catch (final RuntimeException e) {
-        throw e;
-      }
-      catch (final Exception e) {
-        throw new WrappedException(e);
-      }
+      accept(arg);
       return nothing();
     };
   }

@@ -2,6 +2,8 @@ package com.github.gv2011.util;
 
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Function;
 
@@ -9,6 +11,7 @@ import com.github.gv2011.util.beans.BeanBuilder;
 import com.github.gv2011.util.beans.BeanHashCode;
 import com.github.gv2011.util.beans.TypeRegistry;
 import com.github.gv2011.util.json.JsonObject;
+import com.github.gv2011.util.json.JsonUtils;
 
 public final class BeanUtils {
 
@@ -32,6 +35,13 @@ public final class BeanUtils {
     return typeRegistry().beanType(beanClass).parse(string);
   }
 
+  public static <B> B parse(final Class<B> beanClass, final Path path) {
+    return parse(
+        beanClass,
+        JsonUtils.jsonFactory().deserialize(()->Files.newInputStream(path)).asObject()
+    );
+  }
+
   /**
    * @see BeanHashCode
    */
@@ -44,5 +54,7 @@ public final class BeanUtils {
       return Arrays.stream(attributes).allMatch(a->a.apply(obj).equals(a.apply(o)));
     }
   }
+
+
 
 }

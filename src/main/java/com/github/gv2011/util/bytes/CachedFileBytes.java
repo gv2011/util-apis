@@ -19,7 +19,6 @@ import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
@@ -142,9 +141,9 @@ class CachedFileBytes extends AbstractBytes{
   }
 
   @Override
-  public final Iterator<Byte> iterator() {
+  public final ByteIterator.Resettable iterator() {
     checkNotClosed();
-    return call(()->new StreamIterator(openStream()));
+    return new StreamIterator.Resettable(()->openStream());
   }
 
   @Override

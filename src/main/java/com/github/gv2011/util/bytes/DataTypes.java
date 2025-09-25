@@ -24,7 +24,8 @@ public final class DataTypes {
   public static final DataType TEXT_PLAIN = parse(TEXT+"/"+PLAIN);
   public static final DataType TEXT_PLAIN_UTF_8 = parse(TEXT_PLAIN+";"+CHARSET_PARAMETER_NAME+"="+UTF_8.name());
 
-  public static final DataType XHTML = parse(APPLICATION+"/xhtml+xml;"+CHARSET_PARAMETER_NAME+"="+UTF_8.name());
+  public static final String XML = "xml";
+  public static final DataType XHTML = parse(APPLICATION+"/xhtml+"+XML+";"+CHARSET_PARAMETER_NAME+"="+UTF_8.name());
 
   public static final String MESSAGE = "message";
   public static final String RFC822 = "rfc822";
@@ -36,6 +37,12 @@ public final class DataTypes {
   public static final DataType MULTIPART_MIXED = parse(MULTIPART+"/"+MIXED);
   public static final String ALTERNATIVE = "alternative";
   public static final DataType MULTIPART_ALTERNATIVE = parse(MULTIPART+"/"+ALTERNATIVE);
+
+  public static final String IMAGE = "image";
+
+  public static final DataType SVG = parse(IMAGE+"/svg+"+XML);
+
+//  [image/svg+xml]
 
 
   public ISet<DataType> getAllKnownDataTypes() {

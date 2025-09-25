@@ -52,5 +52,5 @@ public interface Intg extends Decimal{
     return lte(other) ? this : other;
   }
 
-
+  String toString(int minDigits);
 }

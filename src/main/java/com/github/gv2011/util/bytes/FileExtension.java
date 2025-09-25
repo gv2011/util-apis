@@ -42,4 +42,8 @@ public final class FileExtension extends AbstractTypedString<FileExtension>{
     return extension;
   }
 
+  public String appendTo(final String base){
+    return extension.isEmpty() ? base : base+"."+extension;
+  }
+
 }

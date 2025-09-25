@@ -6,9 +6,11 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
+import java.time.temporal.WeekFields;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -20,6 +22,8 @@ public class TimeUtils {
 
   public static final double HOUR = toSeconds(Duration.ofHours(1));
 
+  public static final ZoneId UTC = ZoneId.of("UTC");
+
   public static final DateTimeFormatter DIN_1355_1_DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY);
 
   private static final Pattern HOURS = Pattern.compile("(-?\\d+)(:([0-5]\\d)(:(([0-5]\\d)([,\\.](\\d+))?))?)?");
@@ -27,6 +31,8 @@ public class TimeUtils {
   private static final double NANO = 1d / NANOS_PER_SECOND;
 
   private static final Pattern DD_MM_YYYY = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
+
+
 
   private TimeUtils(){staticClass();}
 
@@ -77,6 +83,10 @@ public class TimeUtils {
     final Matcher m = DD_MM_YYYY.matcher(ddMmYyyy);
     if(!m.matches()) throw new IllegalArgumentException();
     return LocalDate.parse(m.group(3)+"-"+m.group(2)+"-"+m.group(1));
+  }
+
+  public static final int week(final LocalDate date){
+    return date.get(WeekFields.ISO.weekOfWeekBasedYear());
   }
 
   public static final Poller poller(final Duration interval, final Opt<Duration> timeout){

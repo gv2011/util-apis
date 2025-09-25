@@ -8,6 +8,7 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Spliterator;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -104,6 +105,10 @@ public interface ICollectionFactory {
 
   default <E> Opt<E> ofOptional(final Optional<? extends E> optional){
     return optional.<Opt<E>>map(e->single(e)).orElseGet(()->emptySet());
+  }
+
+  default Opt<Integer> ofOptional(final OptionalInt optionalInt) {
+    return optionalInt.isPresent() ? Opt.of(optionalInt.getAsInt()) : emptySet();
   }
 
   default <E> IList<E> listFrom(final Optional<? extends E> optional){
@@ -272,6 +277,6 @@ public interface ICollectionFactory {
     final BinaryOperator<V> mergeFunction
   );
 
-  <E> Collector<E, ?, ISet<E>> transitiveClosure(Function<? super E,Stream<? extends E>> dependents);
+  <E> Collector<E, ?, ISet<E>> transitiveClosure(final Function<E,Stream<E>> dependents);
 
 }

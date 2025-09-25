@@ -31,6 +31,7 @@ import com.github.gv2011.util.Constants;
 import com.github.gv2011.util.ann.GuardedBy;
 import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.ex.ThrowingSupplier;
+import com.github.gv2011.util.html.HtmlFactory;
 import com.github.gv2011.util.icol.ICollectionFactory;
 import com.github.gv2011.util.icol.ICollectionFactorySupplier;
 import com.github.gv2011.util.icol.ISet;
@@ -60,6 +61,11 @@ public final class RecursiveServiceLoader implements AutoCloseableNt{
 
   static final String EMAIL_PROVIDER = "com.github.gv2011.util.email.MailProvider";
   static final String DEFAULT_EMAIL_PROVIDER = "com.github.gv2011.util.email.imp.DefaultMailProvider";
+
+  static final String HTML_PROVIDER = HtmlFactory.class.getName();
+  static final String DEFAULT_HTML_PROVIDER = "com.github.gv2011.util.uc.JdkUnicodeProvider";
+
+
 
 
   private static final Map<String,String> DEFAULT_SERVICES =

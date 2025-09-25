@@ -2,10 +2,10 @@ package com.github.gv2011.util.bytes;
 
 import static com.github.gv2011.util.CollectionUtils.pair;
 import static com.github.gv2011.util.Verify.verify;
+import static com.github.gv2011.util.bytes.ByteUtils.newBytesBuilder;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 import static com.github.gv2011.util.ex.Exceptions.format;
-import static com.github.gv2011.util.ex.Exceptions.notYetImplementedException;
 import static com.github.gv2011.util.ex.Exceptions.wrap;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.CREATE;
@@ -15,7 +15,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.math.BigInteger;
@@ -28,11 +27,10 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.AbstractList;
 import java.util.Base64;
 import java.util.EnumSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 
@@ -43,6 +41,7 @@ import com.github.gv2011.util.HashUtils;
 import com.github.gv2011.util.Pair;
 import com.github.gv2011.util.StreamUtils;
 import com.github.gv2011.util.ann.Immutable;
+import com.github.gv2011.util.icol.Opt;
 import com.github.gv2011.util.num.NumUtils;
 import com.github.gv2011.util.uc.UChars;
 import com.github.gv2011.util.uc.UStr;
@@ -94,7 +93,12 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
 
   @Override
   public byte getByte(final int index){
-    return get((long)index);
+    return getByte((long)index);
+  }
+
+  @Override
+  public final byte getByte(final long index){
+    return get(index);
   }
 
   @Override
@@ -240,7 +244,7 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
 
   protected HashAndSize hashImp() {
     checkNotClosed();
-    return HashUtils.hash256(this::openStream, OutputStream.nullOutputStream());
+    return HashUtils.hashAndSize(this::openStream, OutputStream.nullOutputStream());
   }
 
 
@@ -251,7 +255,7 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
 
   @Override
   public final Reader reader() {
-	return new InputStreamReader(openStream(), UTF_8);
+    return StreamUtils.reader(openStream());
   }
 
   @Override
@@ -315,7 +319,7 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
   }
 
   @Override
-  public Iterator<Byte> iterator() {
+  public ByteIterator.Resettable iterator() {
     checkNotClosed();
     return new It(0);
   }
@@ -382,9 +386,8 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
   }
 
   @Override
-  public Bytes append(final Bytes hashBytes) {
-    // TODO Auto-generated method stub
-    throw notYetImplementedException();
+  public Bytes append(final Bytes other) {
+    return newBytesBuilder(NumUtils.toInt(longSize()+other.longSize())).append(this).append(other).build();
   }
 
   @Override
@@ -408,9 +411,9 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
   }
 
   @Override
-  public Optional<Long> indexOfOther(final Bytes other) {
+  public Opt<Long> indexOfOther(final Bytes other) {
     checkNotClosed();
-    Optional<Long> result = Optional.empty();
+    Opt<Long> result = Opt.empty();
     boolean done = false;
     long searchIndex = 0;
     long remainingSize = longSize();
@@ -418,7 +421,7 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
     while(!done){
       if(remainingSize<otherSize){done = true;}
       else if(startsWith(other, searchIndex)){
-        result = Optional.of(searchIndex);
+        result = Opt.of(searchIndex);
         done = true;
       }
       else {searchIndex++; remainingSize--;}
@@ -426,6 +429,44 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
     return result;
   }
 
+
+  @Override
+  public Opt<Long> findStartOfOther(final Bytes other) {
+    long start = 0;
+    boolean found = false;
+    while(!found && start<longSize()){
+      final Bytes otherCut = other.subList(0L, Math.min(other.longSize(), longSize()-start));
+      if(startsWith(otherCut, start)) found = true;
+      else start++;
+    }
+    return found ? Opt.of(start) : Opt.empty();
+  }
+
+  @Override
+  public Bytes replaceAll(final Bytes sequence, final Bytes replacement, final Consumer<Long> positions) {
+    try(final BytesBuilder b = new BytesBuilder(longSize())){
+      Bytes bytes = this;
+      boolean found = false;
+      long offset = 0;
+      Opt<Long> pos = bytes.indexOfOther(sequence);
+      while(pos.isPresent()){
+        final long p = pos.get();
+        found = true;
+        b.append(bytes.subList(0L, p));
+        b.append(replacement);
+        positions.accept(offset+p);
+        final long done = p+sequence.longSize();
+        bytes = bytes.subList(done);
+        offset += done;
+        pos = bytes.indexOfOther(sequence);
+      }
+      if(found){
+        b.append(bytes);
+        return b.build();
+      }
+      else return this;
+    }
+  }
 
   @Override
   public int compareTo(final Bytes o) {
@@ -444,7 +485,7 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
   }
 
 
-  private final class It implements ListIterator<Byte> {
+  private final class It implements ListIterator<Byte>, ByteIterator.Resettable {
     private long index;
     private It(final long index) {
       this.index = index;
@@ -454,8 +495,10 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
       return index<longSize();
     }
     @Override
-    public Byte next() {
-      try {return get(index++);}
+    public Byte next() {return nextByte();}
+    @Override
+    public byte nextByte() {
+      try {return getByte(index++);}
       catch (final IndexOutOfBoundsException e) {
         throw new NoSuchElementException();
       }
@@ -492,6 +535,12 @@ public abstract class AbstractBytes extends AbstractList<Byte> implements Bytes{
     @Override
     public void add(final Byte e) {
       throw new UnsupportedOperationException("Read-only");
+    }
+    @Override
+    public void close() {}
+    @Override
+    public void reset() {
+      index = 0;
     }
   }
 

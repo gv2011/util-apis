@@ -15,7 +15,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import javax.security.auth.DestroyFailedException;
 import javax.security.auth.Destroyable;
 
-import com.github.gv2011.util.Equal;
 import com.github.gv2011.util.beans.NoDefaultValue;
 import com.github.gv2011.util.bytes.ByteUtils;
 import com.github.gv2011.util.bytes.Bytes;
@@ -41,12 +40,12 @@ public final class RsaKeyPair extends AbstractTypedString<RsaKeyPair> implements
     return RsaKeyPair.create(keyGen.generateKeyPair());
   }
 
-  public static final RsaKeyPair parse(final Bytes bytes){
-    return RsaKeyPair.create(parseRSAPrivateCrtKey(bytes));
+  public static final RsaKeyPair parsePkcs8(final Bytes pkcs8){
+    return RsaKeyPair.create(parseRSAPrivateCrtKey(pkcs8));
   }
 
-  private static final RSAPrivateCrtKey parseRSAPrivateCrtKey(final Bytes bytes){
-    final PKCS8EncodedKeySpec spec =  new PKCS8EncodedKeySpec(bytes.toByteArray());
+  private static final RSAPrivateCrtKey parseRSAPrivateCrtKey(final Bytes pkcs8){
+    final PKCS8EncodedKeySpec spec =  new PKCS8EncodedKeySpec(pkcs8.toByteArray());
     return (RSAPrivateCrtKey)call(()->KeyFactory.getInstance(RSA).generatePrivate(spec));
   }
 
@@ -55,10 +54,11 @@ public final class RsaKeyPair extends AbstractTypedString<RsaKeyPair> implements
     verifyEqual(pub.getPublicExponent(), priv.getPublicExponent());
   }
 
+
   private final RSAPrivateCrtKey priv;
-  
-  public RsaKeyPair(String base64){
-    this(parseRSAPrivateCrtKey(ByteUtils.asUtf8(base64).content().decodeBase64()));
+
+  public RsaKeyPair(final String pkcs8base64){
+    this(parseRSAPrivateCrtKey(ByteUtils.asUtf8(pkcs8base64).content().decodeBase64()));
   }
 
   private RsaKeyPair(final RSAPrivateCrtKey priv) {
@@ -94,16 +94,15 @@ public final class RsaKeyPair extends AbstractTypedString<RsaKeyPair> implements
     return RsaKeyPair.class.hashCode() * 31 + getPublic().hashCode();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    return Equal.equal(this, obj, RsaKeyPair.class,
-      o->{
-        final RSAPublicKey thisPub = getPublic();
-        final RSAPublicKey otherPub = o.getPublic();
-        return thisPub.getModulus().equals(otherPub.getModulus())
-            && thisPub.getPublicExponent().equals(otherPub.getPublicExponent());
-      }
-    );
+  public boolean isAequivalent(final RsaKeyPair other) {
+    return isAequivalent(other.getPublic());
+  }
+
+  public boolean isAequivalent(final RSAPublicKey publicKey) {
+    final RSAPublicKey thisPub = getPublic();
+    return thisPub.getModulus().equals(publicKey.getModulus())
+        && thisPub.getPublicExponent().equals(publicKey.getPublicExponent())
+    ;
   }
 
   public Bytes encode(){

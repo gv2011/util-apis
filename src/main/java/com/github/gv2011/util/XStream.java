@@ -1,5 +1,6 @@
 package com.github.gv2011.util;
 
+import static com.github.gv2011.util.CollectionUtils.collectLast;
 import static com.github.gv2011.util.CollectionUtils.pair;
 import static com.github.gv2011.util.CollectionUtils.toSingle;
 import static com.github.gv2011.util.ex.Exceptions.call;
@@ -57,6 +58,10 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
     return Opt.ofOptional(findFirst());
   }
 
+  default Opt<E> tryFindLast(){
+    return collect(collectLast());
+  }
+
   default Opt<E> tryFindAny(){
     return Opt.ofOptional(findAny());
   }
@@ -97,12 +102,17 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
   @Override
   XStream<E> unordered();
 
+  @Override
+  XStream<E> sequential();
 
   @Override
   <R> XStream<R> map(Function<? super E, ? extends R> mapper);
 
   @Override
   <R> XStream<R> flatMap(Function<? super E, ? extends Stream<? extends R>> mapper);
+
+  @Override
+  XStream<E> distinct();
 
   default <R> XStream<R> mapOpt(final Function<? super E, ? extends Opt<? extends R>> mapper){
     return mapCollection(mapper);
@@ -177,14 +187,16 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
   }
 
   public static <E> XStream<E> fromIterator(final Iterator<? extends E> iterator) {
-    return iCollections().xStream(
-      Spliterators.spliteratorUnknownSize(iterator, ORDERED|NONNULL),
-      false
-    );
+    return fromSpliterator(Spliterators.spliteratorUnknownSize(iterator, ORDERED|NONNULL));
+  }
+
+  public static <E> XStream<E> fromSpliterator(final Spliterator<E> spliterator) {
+    return iCollections().xStream(spliterator, false);
   }
 
   public static <T> XStream<T> concat(final Stream<? extends T> a, final Stream<? extends T> b) {
     return xStream(Stream.concat(a, b)
     );
   }
+
 }

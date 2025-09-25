@@ -1,11 +1,13 @@
 package com.github.gv2011.util.icol;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.BinaryOperator;
@@ -116,7 +118,7 @@ public final class ICollections {
     return iCollections().pathOf(elements);
   }
 
-  @SuppressWarnings("unchecked")
+  @SafeVarargs
   public static <E> ISet<E> setOf(final E e1, final E e2, final E... more){
     return iCollections().setOf(e1, e2, more);
   }
@@ -135,6 +137,10 @@ public final class ICollections {
 
   public static <E> Opt<E> ofOptional(final Optional<? extends E> optional){
     return iCollections().ofOptional(optional);
+  }
+
+  public static Opt<Integer> ofOptional(final OptionalInt optionalInt) {
+    return iCollections().ofOptional(optionalInt);
   }
 
   public static <E> IList<E> listFrom(final Optional<? extends E> optional){
@@ -258,11 +264,11 @@ public final class ICollections {
     return iCollections().setCollector();
   }
 
-  public static <E> Collector<E, ?, ISet<E>> transitiveClosure(final Function<? super E,Stream<? extends E>> dependents) {
+  public static <E> Collector<E, ?, ISet<E>> transitiveClosure(final Function<E,Stream<E>> dependents) {
     return iCollections().transitiveClosure(dependents);
   }
 
-  public static <E> ISet<E> transitiveClosure(final E node, final Function<? super E,Stream<? extends E>> dependents) {
+  public static <E> ISet<E> transitiveClosure(final E node, final Function<E,Stream<E>> dependents) {
     return Stream.of(node).collect(transitiveClosure(dependents));
   }
 
@@ -349,6 +355,10 @@ public final class ICollections {
     return iCollections().xStream(s);
   }
 
+  public static <E> XStream<E> xStream(final E[] array) {
+    return iCollections().xStream(Arrays.stream(array));
+  }
+
   public static <E> XStream<E> emptyStream() {
     return iCollections().emptyStream();
   }
@@ -389,6 +399,9 @@ public final class ICollections {
   ){
     return iCollections().priorityMerge(sources, key, mergeFunction);
   }
+
+
+
 
 
 

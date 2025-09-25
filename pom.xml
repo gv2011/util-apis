@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.github.gv2011</groupId>
     <artifactId>parent-gv</artifactId>
-    <version>1.7</version>
+    <version>1.8-SNAPSHOT</version>
   </parent>
 
   <artifactId>util-apis</artifactId>
@@ -26,7 +26,7 @@
       <url>https://opensource.org/licenses/MIT</url>
       <comments>
         The license applies to the content of the source code repository identified within the 'scm'-section
-        of this file and the corresponding content in the previous repository at https://github.com/gv2011/util. 
+        of this file and the corresponding content in the previous repository at https://github.com/gv2011/util.
         The author(s) and copyright dates are given by these source code repositories, the
         'developers' section and the inceptionYear tag of this file.
       </comments>
@@ -39,7 +39,7 @@
     <url>https://github.com/gv2011/util-apis</url>
     <tag>HEAD</tag>
   </scm>
-  
+
   <dependencies>
     <dependency>
       <groupId>jakarta.activation</groupId>

@@ -69,6 +69,8 @@ public interface Decimal extends TypedString<Decimal>{
 
   Decimal multiply(Decimal factor);
 
+  Decimal divide(Decimal divisor);
+
   default Decimal multiply(final Intg factor){
     return multiply((Decimal) factor);
   }
@@ -116,6 +118,9 @@ public interface Decimal extends TypedString<Decimal>{
   default Decimal min(final Decimal other) {
     return lte(other) ? this : other;
   }
+
+
+
 
 
 }

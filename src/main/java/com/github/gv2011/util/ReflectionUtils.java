@@ -6,14 +6,19 @@ import static com.github.gv2011.util.ex.Exceptions.bugValue;
 import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
+import static com.github.gv2011.util.ex.Exceptions.wrap;
 import static com.github.gv2011.util.icol.ICollections.setBuilder;
 import static com.github.gv2011.util.icol.ICollections.setFrom;
 import static com.github.gv2011.util.icol.ICollections.setOf;
+import static com.github.gv2011.util.icol.ICollections.toIMap;
 import static com.github.gv2011.util.icol.ICollections.toISet;
 import static com.github.gv2011.util.icol.ICollections.toISortedSet;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -23,10 +28,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.github.gv2011.util.ann.Nullable;
+import com.github.gv2011.util.icol.IMap;
 import com.github.gv2011.util.icol.ISet;
 import com.github.gv2011.util.icol.ISortedSet;
 
@@ -232,6 +239,34 @@ public final class ReflectionUtils {
       else return bugValue();
     }
     else return clazz;
+  }
+
+  public static <B> IMap<Method,BiFunction<B, Object[],Object>> getDefaultMethodInvokers(final Class<B> interfaze){
+    verify(interfaze.isInterface());
+    return Stream.of(interfaze.getMethods())
+      .filter(Method::isDefault)
+      .collect(toIMap(
+        m->m,
+        ReflectionUtils::getDefaultMethodInvoker
+      ))
+    ;
+  }
+
+  public static <B> BiFunction<B, Object[],Object> getDefaultMethodInvoker(final Method method){
+    verify(method.isDefault());
+    final MethodHandle special = call(()->MethodHandles.lookup().findSpecial(
+      method.getDeclaringClass(),
+      method.getName(),
+      MethodType.methodType(method.getReturnType(), method.getParameterTypes()),
+      method.getDeclaringClass()
+    ));
+    return (proxy, args) -> {
+      try {
+        return special.bindTo(proxy).invokeWithArguments(args);
+      } catch (final Throwable e) {
+        throw wrap(e);
+      }
+    };
   }
 
 }

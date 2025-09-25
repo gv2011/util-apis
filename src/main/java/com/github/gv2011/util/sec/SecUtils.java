@@ -1,6 +1,5 @@
 package com.github.gv2011.util.sec;
 
-import static com.github.gv2011.util.num.NumUtils.withLeadingZeros;
 import static com.github.gv2011.util.Verify.verify;
 import static com.github.gv2011.util.Verify.verifyEqual;
 import static com.github.gv2011.util.ex.Exceptions.call;
@@ -10,6 +9,7 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.icol.ICollections.listBuilder;
 import static com.github.gv2011.util.icol.ICollections.listOf;
 import static com.github.gv2011.util.icol.ICollections.toIList;
+import static com.github.gv2011.util.num.NumUtils.withLeadingZeros;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -21,11 +21,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -94,10 +96,17 @@ public final class SecUtils {
   }
 
   /**
-   * @param idRsaPub Open SSH "id_rsa.pub" format
+   * @param idRsaPub OpenSSH "id_rsa.pub" format
    */
-  public static OpenSshRsaPublicKey parseOpenSshRsaPublicKey(final String idRsaPub){
+  public static OpenSshPublicKey parseOpenSshRsaPublicKey(final String idRsaPub){
     return SEC_PROVIDER.get().parseOpenSshRsaPublicKey(idRsaPub);
+  }
+
+  /**
+   * @param idRsa OpenSSH "id_rsa" format
+   */
+  public static RsaKeyPair parseOpenSshRsaPrivateKey(final String idRsa){
+    return SEC_PROVIDER.get().parseOpenSshRsaPrivateKey(idRsa);
   }
 
   public static RSAPublicKey createRsaPublicKey(final BigInteger modulus, final BigInteger publicExponent){
@@ -107,7 +116,19 @@ public final class SecUtils {
   }
 
   public static RSAPublicKey parseRsaPublicKey(final Bytes encodedKey){
-    return (RSAPublicKey)call(()->KeyFactory.getInstance(RSA).generatePublic(new X509EncodedKeySpec(encodedKey.toByteArray())));
+    return (RSAPublicKey) readPublicKey(RSA, encodedKey);
+  }
+
+  public static RSAPrivateKey parseRsaPrivateKey(final Bytes encodedKey){
+    return (RSAPrivateKey) readPrivateKey(RSA, encodedKey);
+  }
+
+  public static PublicKey readPublicKey(final String algorithm, final Bytes encodedKey){
+    return call(()->KeyFactory.getInstance(algorithm).generatePublic(new X509EncodedKeySpec(encodedKey.toByteArray())));
+  }
+
+  public static PrivateKey readPrivateKey(final String algorithm, final Bytes encodedKey){
+    return call(()->KeyFactory.getInstance(algorithm).generatePrivate(new X509EncodedKeySpec(encodedKey.toByteArray())));
   }
 
   public static final X509Certificate readCertificate(final Bytes bytes){
@@ -163,7 +184,7 @@ public final class SecUtils {
   }
 
   public static final Bytes convertToPkcs12(final Path folder){
-    final RsaKeyPair keyPair = RsaKeyPair.parse(ByteUtils.read(folder.resolve("key.rsa")));
+    final RsaKeyPair keyPair = RsaKeyPair.parsePkcs8(ByteUtils.read(folder.resolve("key.rsa")));
     final IList<X509Certificate> chain = readCertificateChain(folder);
     return call(()->{
       final KeyStore ks = KeyStore.getInstance(SecUtils.PKCS12);
@@ -223,7 +244,7 @@ public final class SecUtils {
 
   public static final KeyStore createJKSKeyStore(final Path certificateDirectory){
     return createJKSKeyStore(
-      RsaKeyPair.parse(ByteUtils.read(certificateDirectory.resolve(KEY_FILE_NAME))),
+      RsaKeyPair.parsePkcs8(ByteUtils.read(certificateDirectory.resolve(KEY_FILE_NAME))),
       listOf(readCertificate(ByteUtils.read(certFile(certificateDirectory, 0))))
     );
   }
@@ -350,7 +371,7 @@ public final class SecUtils {
       }
       if(!Files.exists(certFile)){
         ByteUtils.newBytes(
-          SEC_PROVIDER.get().createCertificateBuilder().build(RsaKeyPair.parse(ByteUtils.read(keyFile))).getEncoded()
+          SEC_PROVIDER.get().createCertificateBuilder().build(RsaKeyPair.parsePkcs8(ByteUtils.read(keyFile))).getEncoded()
         ).write(certFile);
       }
     });
@@ -396,7 +417,7 @@ public final class SecUtils {
 
   public static RSAPublicKey getPublicKey(final Path certificateDirectory) {
     createCertificateIfMissing(certificateDirectory);
-    return RsaKeyPair.parse(ByteUtils.read(certificateDirectory.resolve(KEY_FILE_NAME))).getPublic();
+    return RsaKeyPair.parsePkcs8(ByteUtils.read(certificateDirectory.resolve(KEY_FILE_NAME))).getPublic();
   }
 
   public static final DestroyingCloseable asDestroyable(final KeyStore keyStore){

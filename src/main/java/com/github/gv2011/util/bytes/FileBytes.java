@@ -41,7 +41,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Iterator;
 
 class FileBytes extends AbstractBytes{
 
@@ -95,9 +94,9 @@ class FileBytes extends AbstractBytes{
   }
 
   @Override
-  public Iterator<Byte> iterator() {
+  public final ByteIterator.Resettable iterator() {
     checkNotClosed();
-    return call(()->new StreamIterator(openStream()));
+    return new StreamIterator.Resettable(()->openStream());
   }
 
   @Override

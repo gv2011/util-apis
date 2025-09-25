@@ -38,6 +38,10 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
     return ICollections.ofOptional(optional);
   }
 
+  public static Opt<Integer> ofOptional(final OptionalInt optionalInt){
+    return ICollections.ofOptional(optionalInt);
+  }
+
   public static <E> Opt<E> ofNullable(@Nullable final E element){
     return ICollections.ofNullable(element);
   }
@@ -54,6 +58,10 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
   E get();
 
   boolean isPresent();
+
+  default <F> Opt<F> filter(final Class<F> clazz){
+    return flatMap(e->clazz.isInstance(e) ? of(clazz.cast(e)) : empty());
+  }
 
   @Override
   Opt<E> filter(final Predicate<? super E> predicate);
@@ -93,6 +101,10 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
   }
 
   <X extends Throwable> E orElseThrow(final Supplier<? extends X> exceptionSupplier) throws X;
+
+  default E orElseThrowMsg(final Supplier<String> message){
+    return orElseThrow(()->new IllegalStateException(message.get()));
+  }
 
   @Override
   default boolean add(final E e) {
@@ -169,6 +181,5 @@ public interface Opt<E> extends ISet<E>, StreamAccess<E, Opt<E>>, Constant<E>{
   default OptionalInt flatMapToInt(final Function<? super E, OptionalInt> mapping){
     return isPresent() ? mapping.apply(get()) : OptionalInt.empty();
   }
-
 
 }

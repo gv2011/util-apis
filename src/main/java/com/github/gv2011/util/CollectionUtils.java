@@ -7,11 +7,12 @@ import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.icol.ICollections.toIList;
 import static com.github.gv2011.util.icol.ICollections.toISet;
 import static java.util.stream.Collectors.toList;
-
+import static java.util.stream.Collector.Characteristics.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -24,6 +25,7 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.Spliterator;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
@@ -34,6 +36,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -332,8 +335,16 @@ public final class CollectionUtils {
     return notNull(array[0]);
   }
 
+  public static <T> XStream<T> stream(final Iterable<T> iterable){
+    return XStream.fromSpliterator(iterable.spliterator());
+  }
+
   public static <T> XStream<T> stream(final Iterator<? extends T> iterator){
     return XStream.fromIterator(iterator);
+  }
+
+  public static <T> XStream<T> stream(final Spliterator<T> spliterator){
+    return XStream.fromSpliterator(spliterator);
   }
 
   public static <T> XStream<T> stream(final Optional<? extends T> optional){
@@ -499,6 +510,40 @@ public final class CollectionUtils {
         return downstream.finisher();
       }
     };
+  }
+
+  private static final Set<Characteristics> LAST_COLLECTOR_CHARACTERISTICS =
+      Collections.unmodifiableSet(EnumSet.of(CONCURRENT))
+  ;
+
+  public static final <T> Collector<T,?,Opt<T>> collectLast(){
+    return new Collector<T, AtomicReference<T>, Opt<T>>(){
+      @Override
+      public Set<Characteristics> characteristics() {
+        return LAST_COLLECTOR_CHARACTERISTICS;
+      }
+      @Override
+      public Supplier<AtomicReference<T>> supplier() {
+        return AtomicReference::new;
+      }
+      @Override
+      public BiConsumer<AtomicReference<T>, T> accumulator() {
+        return (r,t)->r.set(t);
+      }
+      @Override
+      public BinaryOperator<AtomicReference<T>> combiner() {
+        return (l,r)->r;
+      }
+      @Override
+      public Function<AtomicReference<T>, Opt<T>> finisher() {
+        return r->Opt.ofNullable(r.get());
+      }
+    };
+  }
+
+
+  public static boolean hasDuplicates(final Collection<?> collection) {
+    return collection.size() != new HashSet<>(collection).size();
   }
 
 }

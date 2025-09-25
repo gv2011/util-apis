@@ -2,6 +2,7 @@ package com.github.gv2011.util.json;
 
 import static com.github.gv2011.util.ex.Exceptions.callWithCloseable;
 
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -10,7 +11,9 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collector;
 
+import com.github.gv2011.util.StreamUtils;
 import com.github.gv2011.util.bytes.Bytes;
+import com.github.gv2011.util.ex.ThrowingSupplier;
 import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.num.Decimal;
 import com.github.gv2011.util.num.NumUtils;
@@ -22,6 +25,10 @@ public interface JsonFactory {
   static final boolean COMPACT_DEFAULT = false;
 
   JsonNode deserialize(String json);
+
+  default JsonNode deserialize(final ThrowingSupplier<InputStream> in) {
+    return callWithCloseable(in, s->(JsonNode)jsonReader(StreamUtils.reader(s)).readNode());
+  }
 
   default String serialize(final JsonNode json){
     return serialize(json, COMPACT_DEFAULT);

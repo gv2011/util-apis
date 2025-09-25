@@ -2,6 +2,8 @@ package com.github.gv2011.util.num;
 
 import static com.github.gv2011.util.num.NumUtils.intg;
 
+import com.github.gv2011.util.StringUtils;
+
 abstract class AbstractIntg extends AbstractDecimal implements Intg{
 
   @Override
@@ -47,5 +49,11 @@ abstract class AbstractIntg extends AbstractDecimal implements Intg{
   @Override
   public Intg multiply(final Intg multiplicand){
     return intg(toBigDecimal().multiply(multiplicand.toBigDecimal()));
+  }
+
+  @Override
+  public final String toString(final int minDigits) {
+    final String s = toEcmaString();
+    return s.length()<minDigits ? StringUtils.alignRight(s, minDigits, '0') : s;
   }
 }

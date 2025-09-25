@@ -20,11 +20,12 @@ public final class DefaultDataTypeProvider implements DataTypeProvider{
 
   private static final FileExtension TXT = FileExtension.parse("txt");
   private static final FileExtension EML = FileExtension.parse("eml");
-  
+  private static final FileExtension SVG = FileExtension.parse("svg");
+
   @Override
   public ISet<DataType> knownDataTypes() {
     return
-      XStream.of(TEXT_PLAIN, APPLICATION_OCTET_STREAM, MESSAGE_RFC822)
+      XStream.of(TEXT_PLAIN, APPLICATION_OCTET_STREAM, MESSAGE_RFC822, DataTypes.SVG)
       .concat(Arrays.stream(HashAlgorithm.values()).map(HashAlgorithm::getDataType))
       .collect(toISet())
     ;
@@ -34,6 +35,7 @@ public final class DefaultDataTypeProvider implements DataTypeProvider{
   public Opt<FileExtension> preferredFileExtension(final DataType dataType) {
     if(dataType.baseType().equals(TEXT_PLAIN)) return Opt.of(TXT);
     else if(dataType.baseType().equals(MESSAGE_RFC822)) return Opt.of(EML);
+    else if(dataType.baseType().equals(DataTypes.SVG)) return Opt.of(SVG);
     else return Opt.empty();
   }
 
@@ -41,6 +43,7 @@ public final class DefaultDataTypeProvider implements DataTypeProvider{
   public ISortedSet<FileExtension> fileExtensions(final DataType dataType) {
     if(dataType.baseType().equals(TEXT_PLAIN)) return sortedSetOf(TXT);
     else if(dataType.baseType().equals(MESSAGE_RFC822)) return sortedSetOf(EML);
+    else if(dataType.baseType().equals(DataTypes.SVG)) return sortedSetOf(SVG);
     else return emptySortedSet();
   }
 

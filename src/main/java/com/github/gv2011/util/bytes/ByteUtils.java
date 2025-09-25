@@ -27,7 +27,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
@@ -42,6 +44,8 @@ import com.github.gv2011.util.icol.Opt;
 public class ByteUtils {
 
   private ByteUtils(){staticClass();}
+
+  public static final Bytes UTF8BOM = ArrayBytes.create(Character.toString(StreamUtils.BOM).getBytes(UTF_8));
 
   private static final String HEX_CHARS = "0123456789ABCDEF";
 
@@ -96,6 +100,19 @@ public class ByteUtils {
     array[1] = (byte)(i>>16);
     array[0] = (byte)(i>>24);
     return ArrayBytes.create(array);
+  }
+
+  public static Bytes newBytes(final UUID uuid) {
+    final byte[] bytes = new byte[Long.BYTES*2];
+    writeLong(uuid.getMostSignificantBits(),  bytes, 0);
+    writeLong(uuid.getLeastSignificantBits(), bytes, Long.BYTES);
+    return ArrayBytes.create(bytes);
+  }
+
+  private static void writeLong(final long value, final byte[] bytes, final int offset){
+    for (int i = 0; i < Long.BYTES; i++) {
+      bytes[offset+i] = (byte) (value >> (8 * (Long.BYTES - i - 1)));
+    }
   }
 
   public static PlainText asUtf8(final String text){
@@ -197,13 +214,42 @@ public class ByteUtils {
     }
   }
 
-public static Bytes collectBytes(final IntStream intStream) {
+  public static Bytes collectBytes(final IntStream intStream) {
     return intStream
       .collect(BytesBuilder::new, BytesBuilder::write, (b1,b2)->b1.append(b2.build()))
       .build()
     ;
   }
 
+  public static ByteIterator asIterator(final InputStream stream){
+    return asIterator(stream, i->{});
+  }
+
+  public static ByteIterator asIterator(final InputStream stream, final IntConsumer listener){
+    return new ByteIterator(){
+      boolean checked = false;
+      int i = 0;
+      @Override
+      public boolean hasNext() {
+        if(!checked){
+          i = call(()->stream.read());
+          checked = true;
+          listener.accept(i);
+        }
+        return i!=-1;
+      }
+      @Override
+      public byte nextByte() {
+        verify(hasNext());
+        checked = false;
+        return (byte)i;
+      }
+      @Override
+      public Byte next() {return nextByte();}
+      @Override
+      public void close() {call(()->stream.close());}
+    };
+  }
 
   public static Opt<Bytes> tryRead(final Path file) {
     return Files.exists(file) ? Opt.of(read(file)) : Opt.empty();
@@ -301,5 +347,12 @@ public static Bytes collectBytes(final IntStream intStream) {
     return Collections.unmodifiableMap(map);
   }
 
+  public static Bytes readNext(final InputStream in){
+    return call(()->{
+      final byte[] buffer = new byte[Math.min(Math.max(in.available(), 16), 4096)];
+      final int i = in.read(buffer, 0, buffer.length);
+      return i==-1 ? emptyBytes() : ArrayBytes.create(buffer, i);
+    });
+  }
 
 }

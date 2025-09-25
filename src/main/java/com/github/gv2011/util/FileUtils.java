@@ -10,6 +10,7 @@ import static com.github.gv2011.util.ex.Exceptions.wrap;
 import static com.github.gv2011.util.icol.ICollections.xStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
@@ -45,10 +46,12 @@ import com.github.gv2011.util.bytes.ByteUtils;
 import com.github.gv2011.util.bytes.Bytes;
 import com.github.gv2011.util.bytes.DataType;
 import com.github.gv2011.util.bytes.DataTypeProvider;
+import com.github.gv2011.util.bytes.DataTypes;
 import com.github.gv2011.util.bytes.FileExtension;
 import com.github.gv2011.util.bytes.HashAndSize;
 import com.github.gv2011.util.ex.ThrowingFunction;
 import com.github.gv2011.util.ex.ThrowingSupplier;
+import com.github.gv2011.util.icol.ISet;
 import com.github.gv2011.util.icol.Opt;
 import com.github.gv2011.util.time.Clock;
 import com.github.gv2011.util.time.TimeUtils;
@@ -81,8 +84,16 @@ public final class FileUtils {
   }
 
   public static Writer getWriter(final String first, final String... more){
+    return getWriter(Paths.get(first, more));
+  }
+
+  public static Writer getWriter(final Path file){
+    return getWriter(file, false);
+  }
+
+  public static Writer getWriter(final Path file, final boolean append){
     return call(()->new BufferedWriter(new OutputStreamWriter(
-      Files.newOutputStream(Paths.get(first, more)),
+      append ? Files.newOutputStream(file, APPEND, CREATE) : Files.newOutputStream(file),
       CharsetUtils.utf8Encoder()
     )));
   }
@@ -145,7 +156,7 @@ public final class FileUtils {
   }
 
   public static Reader reader(final Path path){
-    return call(()->Files.newBufferedReader(path, UTF_8));
+    return StreamUtils.reader(call(()->Files.newInputStream(path)));
   }
 
   public static Bytes read(final Path path){
@@ -236,6 +247,17 @@ public final class FileUtils {
   private static FileExtension getExtension(final String path){
     final int i = path.lastIndexOf('.');
     return FileExtension.parse(i==-1?"":path.substring(i+1, path.length()).toLowerCase(Locale.ROOT));
+  }
+
+  public static boolean isTextFile(final Path file){
+    final ISet<DataType> dataTypes = DataTypeProvider.instance().dataTypesForExtension(getExtension(file));
+    return !dataTypes.isEmpty()
+      && (
+        dataTypes.stream().allMatch(dt->dt.primaryType().equals("text")) ||
+        dataTypes.size()==1 ? dataTypes.single().baseType().equals(DataTypes.SVG) : false
+      )
+      && Files.isRegularFile(file)
+    ;
   }
 
   public static void delete(final Path file) {
@@ -377,7 +399,7 @@ public final class FileUtils {
   }
 
   public static Writer writer(final Path file) {
-    return call(()->Files.newBufferedWriter(file, UTF_8));
+    return StreamUtils.writer(call(()->Files.newOutputStream(file)));
   }
 
   public static long copy(final Path src, final Path target) {
@@ -457,6 +479,17 @@ public final class FileUtils {
 
   public static DataType getType(final Path p) {
     return DataTypeProvider.instance().dataTypeForExtension(getExtension(p));
+  }
+
+  public static Path newName(Path path) {
+    int i = 1;
+    final String base = FileUtils.removeExtension(path);
+    final FileExtension extension = FileUtils.getExtension(path);
+    while(Files.exists(path)){
+      path = path.getParent().resolve(extension.appendTo(base + "."+ i));
+      i++;
+    }
+    return path;
   }
 
 }

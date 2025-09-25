@@ -2,42 +2,20 @@ package com.github.gv2011.util;
 
 import static com.github.gv2011.util.CollectionUtils.pair;
 
-/*-
- * #%L
- * The MIT License (MIT)
- * %%
- * Copyright (C) 2016 - 2017 Vinz (https://github.com/gv2011)
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
 
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
+import static com.github.gv2011.util.icol.ICollections.listOf;
 
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.icol.Opt;
 
 public final class Comparison {
@@ -59,6 +37,38 @@ public final class Comparison {
       .orElseGet(()->((Opt)opt2).isPresent() ? -1 : 0)
     ;
   };
+
+  static final Comparator<Object> OBJECT_COMPARATOR = Comparison::compareObjects;
+
+  private static final Comparator<Entry<?,?>> ENTRY_COMPARATOR = Comparator
+    .<Entry<?,?>,Object>comparing(Entry::getKey, OBJECT_COMPARATOR)
+    .thenComparing(Entry::getValue, OBJECT_COMPARATOR)
+  ;
+
+  static final Comparator<Class<?>> CLASS_COMPARATOR = Comparator
+    .<Class<?>,String>comparing(Class::getName)
+    .thenComparing(Class::getClassLoader, OBJECT_COMPARATOR)
+    .thenComparing(Class::hashCode)
+  ;
+
+  private static final Comparator<Object> OBJECT_COMPARATOR_INTERNAL = Comparator
+    .comparing(Object::getClass, CLASS_COMPARATOR)
+    .thenComparing(Object::hashCode)
+  ;
+
+  @SuppressWarnings("rawtypes")
+  private static final IList<Pair<Class, Comparator>> OBJECT_COMPARATOR_COMPARATORS = listOf(
+    pair(Comparable.class, Comparator.naturalOrder()),
+    pair(Entry.class,      Comparison.entryComparator()),
+    pair(Opt.class,        Comparison.optComparator()),
+    pair(Set.class,        Comparison.setComparator()),
+    pair(List.class,       Comparison.listComparator())
+  );
+
+
+  public static <C> Comparator<C> reversed(final Comparator<C> comparator){
+    return comparator.reversed();
+  }
 
   public static <C extends Comparable<C>> C min(final C c1, final C c2){
     final int diff = c1.compareTo(c2);
@@ -104,6 +114,19 @@ public final class Comparison {
   @SuppressWarnings("unchecked")
   public static <C extends Comparable<? super C>> Comparator<Opt<C>> optComparator(){
     return OPT_COMPARATOR;
+  }
+
+  public static Comparator<Object> objectComparator(){
+    return OBJECT_COMPARATOR;
+  }
+
+  public static Comparator<Class<?>> classComparator(){
+    return CLASS_COMPARATOR;
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public static <K,V> Comparator<Entry<K,V>> entryComparator(){
+    return (Comparator)ENTRY_COMPARATOR;
   }
 
   @SuppressWarnings("unchecked")
@@ -201,5 +224,20 @@ public final class Comparison {
   }
 
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private static int compareObjects(final Object o1, final Object o2) {
+    if(o1==null) return o2==null ? 0 : -1;
+    else if(o2==null) return 1;
+    else if(o1.equals(o2)) return 0;
+    else{
+      for(final Pair<Class, Comparator> p: OBJECT_COMPARATOR_COMPARATORS){
+        final Class clazz = p.getKey();
+        if(clazz.isInstance(o1) && clazz.isInstance(o2)){
+          return p.getValue().compare(o1, o2);
+        }
+      }
+      return OBJECT_COMPARATOR_INTERNAL.compare(o1, o2);
+    }
+  }
 
 }

@@ -20,7 +20,12 @@ class ArrayBytes extends AbstractBytes{
   static final AbstractBytes EMPTY = new ArrayBytes(new byte[0], null);
 
   private final byte[] bytes;
+  private final int length;
   private final @Nullable Hash256 hash;
+
+  static AbstractBytes create(final byte[] bytes, final int length){
+    return length==0 ? EMPTY : new ArrayBytes(bytes, length, null);
+  }
 
   static AbstractBytes create(final byte[] bytes){
     return bytes.length==0 ? EMPTY : new ArrayBytes(bytes, null);
@@ -31,39 +36,53 @@ class ArrayBytes extends AbstractBytes{
   }
 
 
+  private ArrayBytes(final byte[] bytes, final int length, final @Nullable Hash256 hash) {
+    verify(length>=0 && length<=bytes.length);
+    this.bytes = bytes;
+    this.length = length;
+    this.hash = hash;
+  }
+
   private ArrayBytes(final byte[] bytes, final @Nullable Hash256 hash) {
     this.bytes = bytes;
+    this.length = bytes.length;
     this.hash = hash;
   }
 
   @Override
   public BigInteger toBigInteger() {
-    return new BigInteger(1, bytes);
+    return new BigInteger(1, trimmed());
   }
+
+  private byte[] trimmed(){
+    return length==bytes.length ? bytes : toByteArray();
+  }
+
 
   @Override
   public byte[] toByteArray(){
-    return Arrays.copyOf(bytes, bytes.length);
+    return Arrays.copyOf(bytes, length);
   }
 
   @Override
   public void write(final OutputStream stream){
-    call(()->stream.write(bytes));
+    call(()->stream.write(bytes, 0, length));
   }
 
   @Override
   public long longSize() {
-    return bytes.length;
+    return length;
   }
 
   @Override
   public byte get(final long index) {
-    if(index>Integer.MAX_VALUE) throw new IndexOutOfBoundsException();
+    if(index>Integer.MAX_VALUE || index>=length) throw new IndexOutOfBoundsException();
     return bytes[(int)index];
   }
 
   @Override
   public byte getByte(final int index) {
+    if(index>=length) throw new IndexOutOfBoundsException();
     return bytes[index];
   }
 
@@ -79,12 +98,12 @@ class ArrayBytes extends AbstractBytes{
 
   @Override
   public InputStream openStream() {
-    return new ByteArrayInputStream(bytes);
+    return new ByteArrayInputStream(bytes, 0, length);
   }
 
   @Override
   public Hash256 asHash() {
-    return new Hash256Imp(bytes);
+    return new Hash256Imp(trimmed());
   }
 
   @Override
@@ -103,7 +122,7 @@ class ArrayBytes extends AbstractBytes{
   public ByteBuffer toBuffer(final long offset) {
     verify(offset>=0 && offset<=longSize());
     final int off = NumUtils.toInt(offset);
-    return ByteBuffer.wrap(bytes, off, bytes.length-off).asReadOnlyBuffer();
+    return ByteBuffer.wrap(bytes, off, length-off).asReadOnlyBuffer();
   }
 
   @Override

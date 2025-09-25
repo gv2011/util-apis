@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
  * Marks an inherited interface (composition) as key
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE_USE)
+@Target({ElementType.TYPE_USE, ElementType.METHOD})
 public @interface Key {
 }

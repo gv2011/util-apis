@@ -35,6 +35,10 @@ public interface ISet<E> extends Set<E>, ICollectionG<E, ISet<E>>, ICollection<E
     return c.stream().allMatch(this::contains);
   }
 
+  default boolean containsAny(final Collection<?> c) {
+    return c.stream().anyMatch(this::contains);
+  }
+
   @Override
   default ISet<E> subtract(final Collection<?> other) {
     if(other.isEmpty()) return this;

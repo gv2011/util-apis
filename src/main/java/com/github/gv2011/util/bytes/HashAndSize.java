@@ -10,4 +10,8 @@ public interface HashAndSize extends Bean{
 
   Long size();
 
+  public static HashAndSize create(final Hash256 hash, final Long size){
+    return new HashAndSizeImp(hash, size);
+  }
+
 }

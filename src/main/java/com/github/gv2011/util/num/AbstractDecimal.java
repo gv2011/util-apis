@@ -150,6 +150,11 @@ abstract class AbstractDecimal implements Decimal{
   }
 
   @Override
+  public Decimal divide(final Decimal divisor) {
+    return NumUtils.num(toBigDecimal().divide(divisor.toBigDecimal()));
+  }
+
+  @Override
   public Pair<Intg, Intg> divR(final Decimal divisor) {
     final BigDecimal[] divR = toBigDecimal().divideAndRemainder(divisor.toBigDecimal());
     return pair(intg(divR[0]), intg(divR[1]));

@@ -1,11 +1,13 @@
 package com.github.gv2011.util.icol;
 
+import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.icol.ICollections.toIList;
 import static com.github.gv2011.util.icol.ICollections.toISetList;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 import com.github.gv2011.util.XStream;
 import com.github.gv2011.util.ex.ThrowingFunction;
@@ -16,7 +18,7 @@ public interface ICollection<E> extends Collection<E>{
     final int size = size();
     if(size==0) return Opt.empty();
     else if(size==1) return Opt.of(iterator().next());
-    else throw new IllegalStateException();
+    else throw new IllegalStateException(format("Size is {}.", size));
   }
 
   default E single(){
@@ -97,6 +99,11 @@ public interface ICollection<E> extends Collection<E>{
 
   default ISetList<E> asSetList() {
     return stream().collect(toISetList());
+  }
+
+  default IList<ListEntry<E>> asEntryList() {
+    final IList<E> list = asList();
+    return IntStream.range(0, list.size()).mapToObj(i->new DefaultListEntry<>(list, i)).collect(toIList());
   }
 
 

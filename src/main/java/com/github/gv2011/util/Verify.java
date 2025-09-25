@@ -4,7 +4,6 @@ import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -13,6 +12,7 @@ import java.util.function.UnaryOperator;
 
 import com.github.gv2011.util.ann.Nullable;
 import com.github.gv2011.util.icol.ICollection;
+import com.github.gv2011.util.icol.Opt;
 
 public final class Verify {
 
@@ -104,9 +104,14 @@ public final class Verify {
 
   public static Runnable noop(){return ()->{};}
 
-  public static <T> Optional<T> tryCast(final Object obj, final Class<? extends T> clazz){
-    if(clazz.isInstance(obj)) return Optional.of((T)clazz.cast(obj));
-    else return Optional.empty();
+  public static <T> Opt<T> tryCast(final Object obj, final Class<T> clazz){
+    if(clazz.isInstance(obj)) return Opt.of((T)clazz.cast(obj));
+    else return Opt.empty();
+  }
+
+  public static <T,U> U cast(final T obj, final Class<U> clazz, final BiFunction<T, Class<U>, String> message){
+    if(clazz.isInstance(obj)) return clazz.cast(obj);
+    else throw new ClassCastException(message.apply(obj, clazz));
   }
 
 }

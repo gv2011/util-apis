@@ -3,9 +3,9 @@ package com.github.gv2011.util;
 import static com.github.gv2011.util.ServiceLoaderUtils.lazyServiceLoader;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 
-import com.github.gv2011.util.beans.Bean;
 import com.github.gv2011.util.bytes.Bytes;
 import com.github.gv2011.util.icol.IList;
+import com.github.gv2011.util.icol.Opt;
 
 public final class CsvUtils {
 
@@ -23,10 +23,18 @@ public final class CsvUtils {
     <B> IList<B> read(Bytes csvFile, CsvFormat format, Class<B> beanClass);
   }
 
-  public static interface CsvFormat extends Bean{
+  public static interface CsvFormat{
 
-    default String getColumnName(final String propertyName){
-      return propertyName;
+    default Opt<String> tryGetColumnName(final String propertyName){
+      return Opt.of(propertyName);
+    }
+
+    default Opt<String> tryGetValue(final String propertyName){
+      return Opt.empty();
+    }
+
+    default Opt<String> recordNumberProperty(){
+      return Opt.empty();
     }
 
   }
