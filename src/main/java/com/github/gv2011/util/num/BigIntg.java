@@ -63,4 +63,10 @@ final class BigIntg extends AbstractIntg implements Intg{
     return false;
   }
 
+  @Override
+  public double doubleValue() {
+    return dec.doubleValue();
+  }
+
+
 }

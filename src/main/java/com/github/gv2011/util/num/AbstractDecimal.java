@@ -10,6 +10,7 @@ import static com.github.gv2011.util.num.NumUtils.num;
 import static com.github.gv2011.util.num.SmallIntg.MINUS_ONE;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import com.github.gv2011.util.Pair;
 import com.github.gv2011.util.icol.IList;
@@ -227,6 +228,20 @@ abstract class AbstractDecimal implements Decimal{
   @Override
   public String toEcmaString() {
     return BigDecimalUtils.toEcmaString(toBigDecimal());
+  }
+
+  @Override
+  public Decimal setScale(final int scale) {
+    return NumUtils.num(bigDecimalWithScale(scale));
+  }
+
+  private BigDecimal bigDecimalWithScale(final int scale) {
+    return toBigDecimal().setScale(scale, RoundingMode.DOWN);
+  }
+
+  @Override
+  public String toStringFixed(final int digitsAfterDecimalPoint) {
+    return bigDecimalWithScale(digitsAfterDecimalPoint).toPlainString();
   }
 
 }

@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.gv2011.util.Physics;
 import com.github.gv2011.util.icol.Opt;
 
 public class TimeUtils {
@@ -115,6 +116,12 @@ public class TimeUtils {
 
   public static final String approx(final Duration d) {
     return d.abs().toDays()>3 ? d.toDays()+" days" : d.toString();
+  }
+
+  public static Duration toDuration(final double seconds) {
+    final long fullSeconds = (long) seconds;
+    final long nanos = (long)((seconds - ((double)fullSeconds)) / Physics.nano);
+    return Duration.ofSeconds(fullSeconds).plusNanos(nanos);
   }
 
 }

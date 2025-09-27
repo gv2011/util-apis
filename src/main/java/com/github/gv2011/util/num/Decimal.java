@@ -95,8 +95,6 @@ public interface Decimal extends TypedString<Decimal>{
   boolean fitsLong();
   long longValue();
 
-  double doubleValue();
-
   IList<Intg> toBaseIntg(Intg base);
 
   IList<Intg> toBaseIntg(Intg base, Intg digits);
@@ -119,8 +117,10 @@ public interface Decimal extends TypedString<Decimal>{
     return lte(other) ? this : other;
   }
 
+  double doubleValue();
 
+  Decimal setScale(int scale);
 
-
+  String toStringFixed(int digitsAfterDecimalPoint);
 
 }
