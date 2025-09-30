@@ -33,6 +33,7 @@ import com.github.gv2011.util.bytes.ByteIterator;
 import com.github.gv2011.util.bytes.ByteUtils;
 import com.github.gv2011.util.ex.ThrowingRunnable;
 import com.github.gv2011.util.ex.ThrowingSupplier;
+import com.github.gv2011.util.icol.Opt;
 
 public final class StreamUtils {
 
@@ -41,16 +42,22 @@ public final class StreamUtils {
   public static final char BOM = '\ufeff';
 
   public static byte[] readBytes(final InputStream in, final int length){
+    return tryReadBytes(in, length).orElseThrow(()->new IllegalStateException("Premature end of stream."));
+  }
+
+  public static Opt<byte[]> tryReadBytes(final InputStream in, final int length){
     return call(()->{
       final byte[] result = new byte[length];
       int sum = in.read(result);
-      if(sum==-1) throw new IllegalStateException("Premature end of stream.");
-      while(sum<length){
-        final int read = in.read(result, sum, length-sum);
-        if(read==-1) throw new IllegalStateException("Premature end of stream.");
-        sum+=read;
+      if(sum==-1) return Opt.empty();
+      else{
+        while(sum<length){
+          final int read = in.read(result, sum, length-sum);
+          if(read==-1) throw new IllegalStateException("Premature end of stream.");
+          sum+=read;
+        }
+        return Opt.of(result);
       }
-      return result;
     });
   }
 

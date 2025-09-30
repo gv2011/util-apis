@@ -546,4 +546,22 @@ public final class CollectionUtils {
     return collection.size() != new HashSet<>(collection).size();
   }
 
+  public static <T> XStream<T> asStream(final Supplier<Opt<T>> source) {
+    return stream(asIterator(source));
+  }
+
+  public static <T> Iterator<T> asIterator(final Supplier<Opt<T>> source) {
+    return new Iterator<T>(){
+      private Opt<T> next = source.get();
+      @Override
+      public boolean hasNext() {return next.isPresent();}
+      @Override
+      public T next() {
+        final T result = next.get();
+        next = source.get();
+        return result;
+      }
+    };
+  }
+
 }

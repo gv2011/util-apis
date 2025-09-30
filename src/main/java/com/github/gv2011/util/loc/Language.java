@@ -20,7 +20,7 @@ public class Language extends AbstractTypedString<Language>{
 
   static{
     LANGUAGES = Arrays.stream(Locale.getISOLanguages())
-      .map(i2->Locale.of(i2).getISO3Language())
+      .map(i2->new Locale(i2).getISO3Language())
       .collect(toISet())
       .stream()
       .map(i3->{

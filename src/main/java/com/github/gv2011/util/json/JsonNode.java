@@ -8,8 +8,11 @@ import java.io.OutputStreamWriter;
 import java.util.stream.Stream;
 
 import com.github.gv2011.util.HashUtils;
+import com.github.gv2011.util.bytes.ByteUtils;
+import com.github.gv2011.util.bytes.DataTypes;
 import com.github.gv2011.util.bytes.HashAndSize;
 import com.github.gv2011.util.bytes.HashFactory.HashBuilder;
+import com.github.gv2011.util.bytes.TypedBytes;
 import com.github.gv2011.util.num.Decimal;
 
 public interface JsonNode extends Comparable<JsonNode>{
@@ -21,6 +24,10 @@ public interface JsonNode extends Comparable<JsonNode>{
   }
 
   String serialize(boolean compact);
+
+  default TypedBytes asTypedBytes(final boolean compact){
+    return ByteUtils.asUtf8(serialize(compact)).content().typed(DataTypes.APPLICATION_JSON);
+  }
 
   void write(final JsonWriter out);
 

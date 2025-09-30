@@ -22,7 +22,11 @@ public interface HttpFactory {
 
   RestClient createRestClient();
 
-  HttpServer createServer(IList<Pair<Space,RequestHandler>> handlers);
+  default HttpServer createServer(final IList<Pair<Space,RequestHandler>> handlers){
+    return createServer(handlers, OptionalInt.empty());
+  }
+
+  HttpServer createServer(IList<Pair<Space,RequestHandler>> handlers, OptionalInt httpPort);
 
   HttpServer createServer(
     IList<Pair<Space,RequestHandler>> handlers,

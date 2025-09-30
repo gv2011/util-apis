@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.util.stream.IntStream;
 
 import com.github.gv2011.util.ex.ThrowingRunnable;
+import com.github.gv2011.util.icol.Opt;
 import com.github.gv2011.util.tstr.TypedString.TypedStringParser;
 
 public final class NumUtils {
@@ -28,6 +29,14 @@ public final class NumUtils {
 
   public static Decimal parse(final String dec){
     return num(new BigDecimal(dec));
+  }
+
+  public static Opt<Decimal> tryParse(final String dec){
+    try {
+      return Opt.of(parse(dec));
+    } catch (final NumberFormatException e) {
+      return Opt.empty();
+    }
   }
 
   public static Decimal parseComma(final String dec){

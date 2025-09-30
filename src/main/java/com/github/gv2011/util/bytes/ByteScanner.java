@@ -110,7 +110,6 @@ public class ByteScanner implements Iterator<ByteIterator>{
       };
     }
 
-    @Override
     public Byte removeFirst() {return removeFirstByte();}
 
     @Override

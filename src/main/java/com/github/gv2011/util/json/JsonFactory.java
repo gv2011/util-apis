@@ -15,6 +15,7 @@ import com.github.gv2011.util.StreamUtils;
 import com.github.gv2011.util.bytes.Bytes;
 import com.github.gv2011.util.ex.ThrowingSupplier;
 import com.github.gv2011.util.icol.IList;
+import com.github.gv2011.util.icol.ISortedMap;
 import com.github.gv2011.util.num.Decimal;
 import com.github.gv2011.util.num.NumUtils;
 import com.github.gv2011.util.serviceloader.Service;
@@ -61,6 +62,10 @@ public interface JsonFactory {
 
   Collector<Entry<String,JsonNode>, ?, JsonObject> toJsonObject();
 
+  JsonObject toJsonObject(String key, JsonNode value);
+
+  JsonObject toJsonObject(ISortedMap<String, JsonNode> entries);
+
   JsonNull jsonNull();
 
   JsonString primitive(String s);
@@ -82,5 +87,7 @@ public interface JsonFactory {
   }
 
   JsonBoolean primitive(boolean b);
+
+
 
 }

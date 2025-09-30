@@ -121,7 +121,20 @@ public class TimeUtils {
   public static Duration toDuration(final double seconds) {
     final long fullSeconds = (long) seconds;
     final long nanos = (long)((seconds - ((double)fullSeconds)) / Physics.nano);
-    return Duration.ofSeconds(fullSeconds).plusNanos(nanos);
+    final Duration part1 = Duration.ofSeconds(fullSeconds);
+    try {
+      return part1.plusNanos(nanos);
+    } catch (final ArithmeticException e) {
+      try {
+        return part1.plusMillis(nanos/1000000L);
+      } catch (final ArithmeticException es) {
+        return part1;
+      }
+    }
+  }
+
+  public static double duration(final Instant t1, final Instant t2) {
+    return toSeconds(Duration.between(t1, t2));
   }
 
 }

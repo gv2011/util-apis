@@ -264,7 +264,25 @@ public class ByteUtils {
   }
 
   public static Bytes read(final InputStream in, final int size) {
-    return ArrayBytes.create(StreamUtils.readBytes(in, size));
+    return tryRead(in, size).orElseThrow(()->new IllegalStateException("Premature end of stream."));
+  }
+
+  public static Opt<Bytes> tryRead(final InputStream in, final int size) {
+    return StreamUtils.tryReadBytes(in, size)
+      .map(ArrayBytes::create)
+    ;
+  }
+
+  public static int readInt(final InputStream in) {
+    return read(in,4).toInt();
+  }
+
+  public static long readLong(final InputStream in) {
+    return read(in,8).toLong();
+  }
+
+  public static Opt<Long> tryReadLong(final InputStream in) {
+    return tryRead(in,8).map(Bytes::toLong);
   }
 
   public static Bytes toBytes(long l) {

@@ -23,7 +23,7 @@ public interface Bytes extends List<Byte>, Comparable<Bytes>, OptCloseable{
 
   public static final class TooBigException extends IllegalStateException {}
 
-  Bytes append(Bytes hashBytes);
+  Bytes append(Bytes other);
 
   Hash256 asHash();
 
