@@ -9,6 +9,10 @@
 
   <artifactId>util-apis</artifactId>
   <version>0.15.3-SNAPSHOT</version>
+  
+  <name>gv2011-util-apis</name>
+  <description>API for child modules of gv2011-util</description>
+  <url>https://github.com/gv2011/util-apis</url>
 
   <inceptionYear>2016</inceptionYear>
 
