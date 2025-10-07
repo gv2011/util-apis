@@ -14,6 +14,11 @@ implements ISortedMap<K,V>{
   @Override
   public abstract ISortedSet<K> keySet();
 
+  @Override
+  public ISet<Entry<K, V>> entrySet() {
+    return keySet().map(k->pair(k, get(k)));
+  }
+
 
   @Override
   public Opt<Entry<K, V>> tryGetLowerEntry(final K key) {

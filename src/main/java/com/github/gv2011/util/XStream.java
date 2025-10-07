@@ -135,6 +135,11 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
   <R> XStream<R> flatOpt(final Function<? super E, ? extends Opt<? extends R>> mapper);
 
   @Override
+  default XStream<E> limit(final long maxSize) {
+    return xStream(limit(maxSize));
+  }
+
+  @Override
   default void close() {}
 
   public static<T> XStream<T> of(final T t) {
@@ -195,8 +200,13 @@ public interface XStream<E> extends StreamAccess<E, XStream<E>>, Stream<E>, Auto
   }
 
   public static <T> XStream<T> concat(final Stream<? extends T> a, final Stream<? extends T> b) {
-    return xStream(Stream.concat(a, b)
-    );
+    return xStream(Stream.concat(a, b));
   }
+
+  @Override
+  XStream<E> takeWhile(final Predicate<? super E> predicate);
+
+  @Override
+  XStream<E> dropWhile(final Predicate<? super E> predicate);
 
 }

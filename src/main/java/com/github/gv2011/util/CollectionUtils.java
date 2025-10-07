@@ -6,8 +6,10 @@ import static com.github.gv2011.util.ex.Exceptions.format;
 import static com.github.gv2011.util.ex.Exceptions.staticClass;
 import static com.github.gv2011.util.icol.ICollections.toIList;
 import static com.github.gv2011.util.icol.ICollections.toISet;
+import static com.github.gv2011.util.icol.ICollections.xStream;
+import static java.util.stream.Collector.Characteristics.CONCURRENT;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collector.Characteristics.*;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -562,6 +564,10 @@ public final class CollectionUtils {
         return result;
       }
     };
+  }
+
+  public static <E> XStream<Pair<Integer,E>> indexStream(final List<E> list) {
+    return xStream(IntStream.range(0, list.size()).mapToObj(i->pair(i, list.get(i))));
   }
 
 }
