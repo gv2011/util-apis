@@ -1,6 +1,11 @@
 package com.github.gv2011.util.sec;
 
+import static com.github.gv2011.util.ex.Exceptions.call;
+
+import java.security.cert.X509Certificate;
+
 import com.github.gv2011.util.Pair;
+import com.github.gv2011.util.bytes.ByteUtils;
 import com.github.gv2011.util.bytes.Bytes;
 import com.github.gv2011.util.bytes.TypedBytes;
 
@@ -45,5 +50,11 @@ public interface SecProvider {
    * </ul>
    */
   UnixSha512CryptHash unixSha512Crypt(Bytes password);
+
+  Bytes convertToPem(Bytes certificate);
+
+  default Bytes convertToPem(final X509Certificate certificate){
+    return convertToPem(ByteUtils.newBytes(call(certificate::getEncoded)));
+  }
 
 }

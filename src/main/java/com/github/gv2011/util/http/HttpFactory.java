@@ -2,14 +2,17 @@ package com.github.gv2011.util.http;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.X509Certificate;
 import java.util.OptionalInt;
 import java.util.function.Predicate;
 
 import com.github.gv2011.util.Pair;
+import com.github.gv2011.util.Store;
 import com.github.gv2011.util.bytes.TypedBytes;
 import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.icol.Opt;
 import com.github.gv2011.util.sec.Domain;
+import com.github.gv2011.util.sec.RsaKeyPair;
 
 public interface HttpFactory {
 
@@ -64,5 +67,9 @@ public interface HttpFactory {
   }
 
   AcmeStore openAcmeStore(Path directory);
+
+  CertificateHandler createSelfSignedCertificateHandler(final Domain domain);
+
+  CertificateHandler createSelfSignedCertificateHandler(final Domain domain, final Store<RsaKeyPair> keyStore, final Store<X509Certificate> certStore);
 
 }

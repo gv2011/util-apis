@@ -1,10 +1,12 @@
 package com.github.gv2011.util.http;
 
-import java.security.cert.X509Certificate;
+import java.security.PublicKey;
 
 import com.github.gv2011.util.beans.Bean;
 import com.github.gv2011.util.icol.IList;
 import com.github.gv2011.util.icol.ISortedMap;
+import com.github.gv2011.util.icol.Opt;
+import com.github.gv2011.util.sec.CertificateChain;
 import com.github.gv2011.util.sec.Domain;
 
 public interface Request extends HttpMessage, Bean{
@@ -13,7 +15,11 @@ public interface Request extends HttpMessage, Bean{
 
   Boolean secure();
 
-  IList<X509Certificate> peerCertificateChain();
+  Opt<CertificateChain> peerCertificateChain();
+
+  default Opt<PublicKey> peerPublicKey(){
+    return peerCertificateChain().map(cc->cc.leafCertificate().getPublicKey());
+  }
 
   Method method();
 

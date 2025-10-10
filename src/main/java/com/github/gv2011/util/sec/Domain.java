@@ -1,9 +1,11 @@
 package com.github.gv2011.util.sec;
 
 import static com.github.gv2011.util.Verify.verify;
+import static com.github.gv2011.util.ex.Exceptions.call;
 import static com.github.gv2011.util.icol.ICollections.pathFrom;
 import static java.util.stream.Collectors.joining;
 
+import java.net.InetAddress;
 import java.security.Principal;
 import java.util.Locale;
 
@@ -19,8 +21,14 @@ import com.github.gv2011.util.uc.UnicodeProvider;
 public class Domain extends AbstractTypedString<Domain> {
 
   private static final UnicodeProvider PROV = TextUtils.UNICODE_PROVIDER.get();
-  
+
   public static final Domain LOCALHOST = new Domain("localhost".intern());
+
+
+  public static Domain localHostname() {
+    return parse(call(InetAddress::getLocalHost).getHostName());
+  }
+
 
   public static Domain parse(String domain) {
     domain = domain.toLowerCase(Locale.ROOT).trim();
@@ -31,14 +39,14 @@ public class Domain extends AbstractTypedString<Domain> {
     }
   }
 
-  public static Domain parse(Path path) {
+  public static Domain parse(final Path path) {
     return parse(path.stream().collect(joining(".")));
   }
-  
-  public static Domain from(Principal principal) {
+
+  public static Domain from(final Principal principal) {
     return parse(StringUtils.removePrefix(principal.getName(), "CN="));
   }
-  
+
   private final String ascii;
 
   private Domain(final String ascii) {
@@ -67,11 +75,11 @@ public class Domain extends AbstractTypedString<Domain> {
   public String toAscii() {
     return ascii;
   }
-  
+
   public Path asPath(){
     return pathFrom(StringUtils.split(toUnicode(), '.'));
   }
-  
+
   public boolean isInetAddress(){
     return NetUtils.isInetAddress(ascii);
   }

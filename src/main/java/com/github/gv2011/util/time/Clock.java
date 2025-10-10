@@ -30,12 +30,13 @@ public interface Clock {
 
   void notifyAt(final Object obj, final Instant notifyAt);
 
-  default boolean hasPassed(Instant time){
+  default boolean hasPassed(final Instant time){
     return instant().isAfter(time);
   }
-  
-  AutoCloseableNt runAtInterval(ThrowingRunnable operation, Duration interval);
-  
-  Poller poller(Duration interval, Opt<Duration> timeout);
 
+  AutoCloseableNt runAtInterval(ThrowingRunnable operation, Duration interval);
+
+  AutoCloseableNt runAt(ThrowingRunnable operation, Instant time);
+
+  Poller poller(Duration interval, Opt<Duration> timeout);
 }

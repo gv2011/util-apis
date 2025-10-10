@@ -151,7 +151,7 @@ public final class SecUtils {
     );
   }
 
-  public static final IList<X509Certificate> readCertificateChainFromPem(final String pem){
+  public static final CertificateChain readCertificateChainFromPem(final String pem){
     final CertificateFactory certFactory = call(()->CertificateFactory.getInstance(X_509));
     return callWithCloseable(
       ()->new ByteArrayInputStream(pem.getBytes(StandardCharsets.US_ASCII)),
@@ -159,53 +159,63 @@ public final class SecUtils {
         final IList.Builder<X509Certificate> b = listBuilder();
         b.add((X509Certificate)certFactory.generateCertificate(s));
         b.add((X509Certificate)certFactory.generateCertificate(s));
-        return b.build();
+        return createCertificateChain(b.build());
       }
     );
   }
 
-  public static final void writeCertificateChain(final IList<X509Certificate> certChain, final Path folder){
+  public static final void writeCertificateChain(final CertificateChain certChain, final Path folder){
     writeCertificateChain(certChain, folder, CERT_FILE_PATTERN);
   }
 
-  public static final void writeCertificateChain(final IList<X509Certificate> certChain, final Path folder, final String certFilePattern){
+  public static final void writeCertificateChain(final CertificateChain certChain, final Path folder, final String certFilePattern){
     int i=0;
     boolean done = false;
     while(!done){
       final Path certFile = certFile(folder, i, certFilePattern);
       final boolean deleted = FileUtils.deleteFile(certFile);
-      if(!deleted && i>=certChain.size()) done=true;
+      if(!deleted && i>=certChain.certificates().size()) done=true;
       i++;
     }
-    for(i=0; i<certChain.size(); i++){
-      final X509Certificate cert = certChain.get(i);
+    for(i=0; i<certChain.certificates().size(); i++){
+      final X509Certificate cert = certChain.certificates().get(i);
       ByteUtils.newBytes(call(cert::getEncoded)).write(certFile(folder,i, certFilePattern));
     }
   }
 
   public static final Bytes convertToPkcs12(final Path folder){
-    final RsaKeyPair keyPair = RsaKeyPair.parsePkcs8(ByteUtils.read(folder.resolve("key.rsa")));
-    final IList<X509Certificate> chain = readCertificateChain(folder);
+    return convertToPkcs12(
+      RsaKeyPair.parsePkcs8(ByteUtils.read(folder.resolve("key.rsa"))),
+      readCertificateChain(folder)
+    );
+  }
+
+  public static final Bytes convertToPkcs12(final RsaKeyPair keyPair, final CertificateChain chain){
+    verifyEqual(chain.leafCertificate().getPublicKey(), keyPair.getPublic());
     return call(()->{
       final KeyStore ks = KeyStore.getInstance(SecUtils.PKCS12);
       ks.load(null, null);
       ks.setKeyEntry(
         CERT_ALIAS,
         keyPair.getPrivate(),
-        JKS_DEFAULT_PASSWORD.toCharArray(),
-        chain.toArray(new Certificate[chain.size()])
+        null,
+        chain.certificates().toArray(new Certificate[chain.certificates().size()])
       );
       final BytesBuilder bytesBuilder = ByteUtils.newBytesBuilder();
-      ks.store(bytesBuilder, "default".toCharArray());
+      ks.store(bytesBuilder, "".toCharArray());
       return bytesBuilder.build();
     });
   }
 
-  public static final IList<X509Certificate> readCertificateChain(final Path folder){
+  public static final Bytes convertToPem(final X509Certificate certificate){
+    return SEC_PROVIDER.get().convertToPem(certificate);
+  }
+
+  public static final CertificateChain readCertificateChain(final Path folder){
     return readCertificateChain(folder, CERT_FILE_PATTERN);
   }
 
-  public static final IList<X509Certificate> readCertificateChain(final Path folder, final String certFilePattern){
+  public static final CertificateChain readCertificateChain(final Path folder, final String certFilePattern){
     final IList.Builder<X509Certificate> chain = listBuilder();
     int i = 0;
     Path certFile = certFile(folder, i, certFilePattern);
@@ -213,7 +223,7 @@ public final class SecUtils {
       chain.add(readCertificate(ByteUtils.read(certFile)));
       certFile = certFile(folder, ++i, certFilePattern);
     }
-    return chain.build();
+    return createCertificateChain(chain.build());
   }
 
   private static Path certFile(final Path folder, final int i) {
@@ -235,7 +245,7 @@ public final class SecUtils {
   }
 
   public static final KeyStore createJKSKeyStore(
-    final RsaKeyPair privKey, final IList<X509Certificate> certChain
+    final RsaKeyPair privKey, final CertificateChain certChain
   ){
     final KeyStore keyStore = call(()->KeyStore.getInstance(JKS));
     call(()->keyStore.load(null));
@@ -245,7 +255,7 @@ public final class SecUtils {
   public static final KeyStore createJKSKeyStore(final Path certificateDirectory){
     return createJKSKeyStore(
       RsaKeyPair.parsePkcs8(ByteUtils.read(certificateDirectory.resolve(KEY_FILE_NAME))),
-      listOf(readCertificate(ByteUtils.read(certFile(certificateDirectory, 0))))
+      createCertificateChain(listOf(readCertificate(ByteUtils.read(certFile(certificateDirectory, 0)))))
     );
   }
 
@@ -260,15 +270,17 @@ public final class SecUtils {
   }
 
   public static final KeyStore addToKeyStore(
-    final RsaKeyPair privKey, final IList<X509Certificate> certChain, final KeyStore keystore, final Opt<String> alias
+    final RsaKeyPair privKey, final CertificateChain certChain, final KeyStore keystore, final Opt<String> alias
   ){
-    final X509Certificate cert = certChain.get(0);
-    verifyEqual(privKey.getPublic(), cert.getPublicKey());
+    verifyEqual(
+      privKey.getPublic(), certChain.leafCertificate().getPublicKey(),
+      (e,a)->format("The provided key and certificate chain do not match.\nChain key: {}\nPublic key: {}.", e, a)
+    );
     call(()->keystore.setKeyEntry(
       alias.orElseGet(()->findAlias(keystore)),
       privKey.getPrivate(),
       JKS_DEFAULT_PASSWORD.toCharArray(),
-      certChain.toArray(new Certificate[certChain.size()])
+      certChain.certificates().toArray(new Certificate[certChain.certificates().size()])
     ));
     return keystore;
   }
@@ -285,7 +297,7 @@ public final class SecUtils {
   }
 
   public static final Bytes createJKSKeyStoreBytes(
-    final RsaKeyPair privKey, final IList<X509Certificate> certChain
+    final RsaKeyPair privKey, final CertificateChain certChain
   ){
     Bytes result;
     try(BytesBuilder builder = ByteUtils.newBytesBuilder()){
@@ -312,10 +324,11 @@ public final class SecUtils {
     final RsaKeyPair privKey = RsaKeyPair.create(
       (RSAPrivateCrtKey)call(()->ks.getKey(CERT_ALIAS, JKS_DEFAULT_PASSWORD.toCharArray()))
     );
-    final IList<X509Certificate> chain = Arrays.stream(call(()->ks.getCertificateChain(CERT_ALIAS)))
+    final CertificateChain chain = createCertificateChain(
+      Arrays.stream(call(()->ks.getCertificateChain(CERT_ALIAS)))
       .map(c->(X509Certificate)c)
       .collect(toIList())
-    ;
+    );
     privKey.encode().write(folder.resolve(KEY_FILE_NAME));
     writeCertificateChain(chain, folder);
   }
@@ -413,6 +426,10 @@ public final class SecUtils {
       sslContext.init(null, tmf.getTrustManagers() , null);
       return sslContext.getSocketFactory();
     });
+  }
+
+  public static CertificateChain createCertificateChain(final IList<X509Certificate> certificates){
+    return new CertificateChainImp(certificates);
   }
 
   public static RSAPublicKey getPublicKey(final Path certificateDirectory) {

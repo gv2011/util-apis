@@ -53,7 +53,7 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultClock.class);
 
   private static final Duration LOG_TICK_PERIOD = Duration.ofSeconds(10);
-  
+
   static interface Inline extends Runnable{}
 
   private final Object lock = new Object();
@@ -65,6 +65,7 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
 
   public DefaultClock() {
     thread = new Thread(this::run, "clock");
+    thread.setDaemon(true);
     thread.start();
   }
 
@@ -121,14 +122,19 @@ public final class DefaultClock implements Clock, AutoCloseableNt {
       }
     }
   }
-  
+
   @Override
-  public AutoCloseableNt runAtInterval(ThrowingRunnable operation, Duration interval) {
-    return new PeriodicalTask(this, operation, interval);
+  public AutoCloseableNt runAtInterval(final ThrowingRunnable operation, final Duration interval) {
+    return new ClockTask(this, operation, interval);
   }
 
   @Override
-  public final Poller poller(Duration interval, Opt<Duration> timeout){
+  public AutoCloseableNt runAt(final ThrowingRunnable operation, final Instant time) {
+    return new ClockTask(this, operation, time);
+  }
+
+  @Override
+  public final Poller poller(final Duration interval, final Opt<Duration> timeout){
     return new PollerImp(this, interval, timeout);
   }
 

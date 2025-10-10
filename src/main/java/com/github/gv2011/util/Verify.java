@@ -52,7 +52,7 @@ public final class Verify {
 
   public static <T> T verifyEqual(final @Nullable T actual, final @Nullable T expected) {
     if(!Objects.equals(actual, expected)){
-      throw new IllegalStateException(format("Expected: {}, actual: {}.", expected, actual));
+      throw new IllegalStateException(format("Unexpected object.\nExpected: {}\nActual: {}.", expected, actual));
     }
     return actual;
   }
